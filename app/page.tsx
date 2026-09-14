@@ -153,16 +153,31 @@ export default function LandingPage() {
         {/* TOPO */}
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative h-10 w-10 overflow-hidden rounded-full border border-white/10 bg-white/5">
-              <Image
-                src="/assets/logo-crc.png"
-                alt="CRC"
-                fill
-                priority
-                sizes="40px"
-                className="object-cover"
-              />
-            </div>
+            <div
+  style={{
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    overflow: 'hidden',
+    flexShrink: 0,
+    border: '1px solid rgba(255,255,255,0.10)',
+    background: 'rgba(255,255,255,0.03)',
+  }}
+>
+  <Image
+    src="/assets/logo-crc.png"
+    alt="CRC"
+    width={48}
+    height={48}
+    priority
+    style={{
+      width: '100%',
+      height: '100%',
+      objectFit: 'contain',
+      display: 'block',
+    }}
+  />
+</div>
 
             <div>
               <div className="text-[11px] font-semibold uppercase tracking-[0.25em] text-cyan-400">
