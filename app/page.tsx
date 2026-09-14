@@ -258,24 +258,27 @@ export default function LandingPage() {
 
             <div className="scout-video-card">
               <div className="scout-video-frame">
-                <video
-                  controls
-                  playsInline
-                  preload="metadata"
-                  className="scout-video"
-                  src="/assets/miniAPN.mp4"
-                >
-                  Seu navegador não suporta a reprodução deste vídeo.
-                </video>
+  <video
+    controls
+    autoPlay
+    muted
+    playsInline
+    preload="auto"
+    className="scout-video"
+    src="/assets/miniAPN.mp4"
+    onEnded={() => setEtapa(2.5)}
+  >
+    Seu navegador não suporta a reprodução deste vídeo.
+  </video>
 
-                <div className="scout-video-fallback">
-                  <span>APRESENTAÇÃO CRC</span>
-                  <small>
-                    O vídeo será disponibilizado nesta etapa quando estiver
-                    publicado no ambiente definitivo.
-                  </small>
-                </div>
-              </div>
+  <div className="scout-video-fallback">
+    <span>APRESENTAÇÃO CRC</span>
+    <small>
+      O vídeo será disponibilizado nesta etapa quando estiver
+      publicado no ambiente definitivo.
+    </small>
+  </div>
+</div>
             </div>
 
             <div className="scout-choice-row">
@@ -298,6 +301,50 @@ export default function LandingPage() {
             </div>
           </section>
         )}
+
+{etapa === 2.5 && (
+  <section className="scout-content scout-content-narrow">
+    <div className="scout-section-intro">
+      <div className="scout-eyebrow">VOCÊ JÁ CONHECEU A IDEIA</div>
+
+      <h2 className="scout-section-title">
+        Agora experimente.
+      </h2>
+
+      <p className="scout-section-text">
+        O simulador permite experimentar, na prática, como uma comunidade
+        pode se desenvolver dentro do modelo CRC.
+      </p>
+    </div>
+
+    <div className="scout-profile-options">
+      <a
+        href="https://simuladorprosff.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="scout-profile-card scout-profile-card-featured"
+      >
+        <span className="scout-profile-tag">EXPERIÊNCIA CRC</span>
+
+        <strong>Experimentar o Simulador CRC</strong>
+
+        <small>
+          Veja na prática como uma comunidade pode evoluir.
+        </small>
+
+        <span className="scout-card-arrow">→</span>
+      </a>
+    </div>
+
+    <button
+      type="button"
+      className="scout-link-button"
+      onClick={() => setEtapa(3)}
+    >
+      Continuar sem usar o simulador →
+    </button>
+  </section>
+)}
 
         {etapa >= 3 && etapa <= 6 && perguntaAtual && (
           <section className="scout-content scout-content-narrow">
