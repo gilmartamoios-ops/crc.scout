@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -87,6 +86,10 @@ export default function LandingPage() {
   const perguntaAtual =
     indicePergunta >= 0 ? perguntas[indicePergunta] : null;
 
+  const respostaAtual = perguntaAtual
+    ? respostas[perguntaAtual.id]
+    : '';
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
 
@@ -122,6 +125,12 @@ export default function LandingPage() {
       ...anterior,
       [perguntaAtual.id]: valor,
     }));
+  };
+
+  const continuarPergunta = () => {
+    if (!perguntaAtual || !respostaAtual) {
+      return;
+    }
 
     if (etapa < 6) {
       setEtapa((anterior) => anterior + 1);
@@ -418,19 +427,46 @@ export default function LandingPage() {
                 {perguntaAtual.titulo}
               </h2>
 
+              <p className="scout-section-text">
+                Escolha apenas uma opção.
+              </p>
+
               <div className="scout-options">
-                {perguntaAtual.opcoes.map((opcao) => (
-                  <button
-                    key={opcao}
-                    type="button"
-                    className="scout-option"
-                    onClick={() => selecionarResposta(opcao)}
-                  >
-                    <span>{opcao}</span>
-                    <strong>→</strong>
-                  </button>
-                ))}
+                {perguntaAtual.opcoes.map((opcao) => {
+                  const selecionada = respostaAtual === opcao;
+
+                  return (
+                    <button
+                      key={opcao}
+                      type="button"
+                      className="scout-option"
+                      aria-pressed={selecionada}
+                      onClick={() => selecionarResposta(opcao)}
+                      style={
+                        selecionada
+                          ? {
+                              borderColor: 'rgba(0,255,136,.65)',
+                              background: 'rgba(0,255,136,.08)',
+                            }
+                          : undefined
+                      }
+                    >
+                      <span>{opcao}</span>
+                      <strong>{selecionada ? '✓' : '→'}</strong>
+                    </button>
+                  );
+                })}
               </div>
+
+              <button
+                type="button"
+                className="scout-button scout-button-primary scout-form-button"
+                disabled={!respostaAtual}
+                onClick={continuarPergunta}
+              >
+                Continuar
+                <span>→</span>
+              </button>
 
               <button
                 type="button"
@@ -630,4 +666,3 @@ export default function LandingPage() {
     </main>
   );
 }
-
