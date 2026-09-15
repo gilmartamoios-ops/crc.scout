@@ -1,7 +1,9 @@
+
 'use client';
 
 import Image from 'next/image';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 type Perfil = 'gestor' | 'cliente' | 'ambos' | '';
 
@@ -139,23 +141,24 @@ export default function LandingPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
     setErro('');
 
     if (!nome.trim() || !whatsapp.trim()) {
-      setErro('Informe seu nome e WhatsApp para continuar.');
+      setErro('Informe seu nome e WhatsApp para concluir.');
       return;
     }
 
     if (!consentimento) {
       setErro(
-        'Para solicitar contato, é necessário autorizar o uso dos dados para essa finalidade.'
+        'Para concluir seu cadastro no SCOUT, é necessário autorizar o uso dos dados para essa finalidade.'
       );
       return;
     }
 
     setCarregando(true);
 
-    const leadPreparado = {
+    const convidado = {
       nome: nome.trim(),
       whatsapp: whatsapp.trim(),
       cidade: cidade.trim(),
@@ -163,9 +166,28 @@ export default function LandingPage() {
       respostas,
       consentimento,
       data_consentimento: new Date().toISOString(),
+      origem: 'scout-hall',
     };
 
-    console.log('SCOUT — lead preparado:', leadPreparado);
+    const { error } = await supabase.from('scout_registros').insert({
+      tipo: 'convidado',
+      titulo: 'Novo convidado SCOUT',
+      descricao: `Cadastro concluído por ${nome.trim()}`,
+      dados: convidado,
+    });
+
+    if (error) {
+      console.error('SCOUT — erro ao registrar convidado:', error);
+
+      setErro(
+        'Não foi possível concluir agora. Verifique sua conexão e tente novamente.'
+      );
+
+      setCarregando(false);
+      return;
+    }
+
+    console.log('SCOUT — convidado registrado:', convidado);
 
     setEnviado(true);
     setCarregando(false);
@@ -495,15 +517,15 @@ export default function LandingPage() {
         {etapa === 8 && !enviado && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-section-intro">
-              <div className="scout-eyebrow">SOLICITAR ORIENTAÇÃO</div>
+              <div className="scout-eyebrow">CONCLUIR JORNADA</div>
 
               <h2 className="scout-section-title">
-                Quer conversar com um gestor?
+                Quer continuar sua jornada no CRC?
               </h2>
 
               <p className="scout-section-text">
-                Deixe seus dados somente se quiser receber uma orientação
-                personalizada.
+                Deixe seus dados para registrar sua jornada no SCOUT. Eles
+                serão utilizados para a finalidade que você autorizou.
               </p>
             </div>
 
@@ -544,8 +566,8 @@ export default function LandingPage() {
                 />
 
                 <span>
-                  Autorizo o uso dos dados informados para que um representante
-                  do CRC entre em contato comigo sobre a finalidade solicitada.
+                  Autorizo o uso dos dados informados para a finalidade
+                  apresentada nesta jornada do SCOUT.
                 </span>
               </label>
 
@@ -556,7 +578,7 @@ export default function LandingPage() {
                 className="scout-button scout-button-primary scout-form-button"
                 disabled={carregando}
               >
-                {carregando ? 'Processando...' : 'Solicitar orientação'}
+                {carregando ? 'Registrando...' : 'Concluir e avançar'}
                 {!carregando && <span>→</span>}
               </button>
             </form>
@@ -576,15 +598,15 @@ export default function LandingPage() {
             <div className="scout-success">
               <div className="scout-success-icon">✓</div>
 
-              <div className="scout-eyebrow">TUDO CERTO</div>
+              <div className="scout-eyebrow">JORNADA CONCLUÍDA</div>
 
               <h2 className="scout-section-title">
-                Sua jornada começou.
+                Agora você faz parte da jornada SCOUT.
               </h2>
 
               <p className="scout-section-text">
-                Obrigado, {nome.split(' ')[0] || 'por participar'}. Seu
-                interesse foi registrado para a próxima etapa do SCOUT.CRC.
+                Obrigado, {nome.split(' ')[0] || 'por participar'}. Suas
+                respostas e seus dados foram registrados com sucesso.
               </p>
 
               <div className="scout-success-profile">
@@ -608,3 +630,4 @@ export default function LandingPage() {
     </main>
   );
 }
+
