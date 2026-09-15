@@ -86,6 +86,14 @@ export default function LandingPage() {
     indicePergunta >= 0 ? perguntas[indicePergunta] : null;
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('etapa') === 'quiz') {
+      setEtapa(3);
+    }
+  }, []);
+
+  useEffect(() => {
     if (etapa !== 2 || !videoRef.current) {
       return;
     }
@@ -98,7 +106,7 @@ export default function LandingPage() {
       try {
         await video.play();
       } catch {
-        // Alguns navegadores podem bloquear o autoplay mesmo com vídeo sem som.
+        // Alguns navegadores podem bloquear o autoplay.
       }
     };
 
