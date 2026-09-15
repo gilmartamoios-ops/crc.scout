@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 type Perfil = 'gestor' | 'cliente' | 'ambos' | '';
 
@@ -30,6 +30,8 @@ export default function LandingPage() {
   const [carregando, setCarregando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState('');
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const perguntas = useMemo(
     () => [
@@ -79,8 +81,29 @@ export default function LandingPage() {
   );
 
   const indicePergunta = etapa >= 3 && etapa <= 6 ? etapa - 3 : -1;
+
   const perguntaAtual =
     indicePergunta >= 0 ? perguntas[indicePergunta] : null;
+
+  useEffect(() => {
+    if (etapa !== 2 || !videoRef.current) {
+      return;
+    }
+
+    const video = videoRef.current;
+
+    video.currentTime = 0;
+
+    const iniciarVideo = async () => {
+      try {
+        await video.play();
+      } catch {
+        // Alguns navegadores podem bloquear o autoplay mesmo com vídeo sem som.
+      }
+    };
+
+    iniciarVideo();
+  }, [etapa]);
 
   const selecionarResposta = (valor: string) => {
     if (!perguntaAtual) return;
@@ -100,6 +123,10 @@ export default function LandingPage() {
   const selecionarPerfil = (valor: Perfil) => {
     setPerfil(valor);
     setEtapa(8);
+  };
+
+  const handleVideoEnded = () => {
+    setEtapa(2.5);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -258,39 +285,31 @@ export default function LandingPage() {
 
             <div className="scout-video-card">
               <div className="scout-video-frame">
-  <video
-    controls
-    autoPlay
-    muted
-    playsInline
-    preload="auto"
-    className="scout-video"
-    src="/assets/miniAPN.mp4"
-    onEnded={() => setEtapa(2.5)}
-  >
-    Seu navegador não suporta a reprodução deste vídeo.
-  </video>
+                <video
+                  ref={videoRef}
+                  controls
+                  autoPlay
+                  muted
+                  playsInline
+                  preload="auto"
+                  className="scout-video"
+                  src="/assets/miniAPN.mp4"
+                  onEnded={handleVideoEnded}
+                >
+                  Seu navegador não suporta a reprodução deste vídeo.
+                </video>
 
-  <div className="scout-video-fallback">
-    <span>APRESENTAÇÃO CRC</span>
-    <small>
-      O vídeo será disponibilizado nesta etapa quando estiver
-      publicado no ambiente definitivo.
-    </small>
-  </div>
-</div>
+                <div className="scout-video-fallback">
+                  <span>APRESENTAÇÃO CRC</span>
+                  <small>
+                    O vídeo será disponibilizado nesta etapa quando estiver
+                    publicado no ambiente definitivo.
+                  </small>
+                </div>
+              </div>
             </div>
 
             <div className="scout-choice-row">
-              <button
-                type="button"
-                className="scout-button scout-button-primary"
-                onClick={() => setEtapa(3)}
-              >
-                Quero continuar
-                <span>→</span>
-              </button>
-
               <button
                 type="button"
                 className="scout-link-button"
@@ -302,54 +321,54 @@ export default function LandingPage() {
           </section>
         )}
 
-{etapa === 2.5 && (
-  <section className="scout-content scout-content-narrow">
-    <div className="scout-section-intro">
-      <div className="scout-eyebrow">VOCÊ JÁ CONHECEU A IDEIA</div>
+        {etapa === 2.5 && (
+          <section className="scout-content scout-content-narrow">
+            <div className="scout-section-intro">
+              <div className="scout-eyebrow">PRÓXIMA ETAPA</div>
 
-      <h2 className="scout-section-title">
-        Agora experimente.
-      </h2>
+              <h2 className="scout-section-title">
+                Agora experimente.
+              </h2>
 
-      <p className="scout-section-text">
-        O simulador permite experimentar, na prática, como uma comunidade
-        pode se desenvolver dentro do modelo CRC.
-      </p>
-    </div>
+              <p className="scout-section-text">
+                Você acabou de conhecer o conceito. Agora pode experimentar na
+                prática uma das possibilidades do CRC.
+              </p>
+            </div>
 
-    <div className="scout-profile-options">
-      <a
-        href="https://simuladorprosff.vercel.app/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="scout-profile-card scout-profile-card-featured"
-      >
-        <span className="scout-profile-tag">EXPERIÊNCIA CRC</span>
+            <div className="scout-profile-options">
+              <a
+                href="https://simuladorprosff.vercel.app/"
+                className="scout-profile-card scout-profile-card-featured"
+              >
+                <span className="scout-profile-tag">SIMULADOR</span>
 
-        <strong>Experimentar o Simulador CRC</strong>
+                <strong>Simulador de ganhos</strong>
 
-        <small>
-          Veja na prática como uma comunidade pode evoluir.
-        </small>
+                <small>
+                  Faça uma simulação e veja como essa possibilidade pode
+                  funcionar para você.
+                </small>
 
-        <span className="scout-card-arrow">→</span>
-      </a>
-    </div>
+                <span className="scout-card-arrow">→</span>
+              </a>
+            </div>
 
-    <button
-      type="button"
-      className="scout-link-button"
-      onClick={() => setEtapa(3)}
-    >
-      Continuar sem usar o simulador →
-    </button>
-  </section>
-)}
+            <button
+              type="button"
+              className="scout-link-button"
+              onClick={() => setEtapa(2)}
+            >
+              ← Voltar ao vídeo
+            </button>
+          </section>
+        )}
 
         {etapa >= 3 && etapa <= 6 && perguntaAtual && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-progress-head">
               <span>CONHECENDO SEU PERFIL</span>
+
               <strong>
                 {indicePergunta + 1}/{perguntas.length}
               </strong>
@@ -416,10 +435,13 @@ export default function LandingPage() {
                 onClick={() => selecionarPerfil('gestor')}
               >
                 <span className="scout-profile-tag">COMUNIDADE</span>
+
                 <strong>Conhecer a construção de uma comunidade</strong>
+
                 <small>
                   Quero entender o papel do gestor dentro do CRC.
                 </small>
+
                 <span className="scout-card-arrow">→</span>
               </button>
 
@@ -429,8 +451,11 @@ export default function LandingPage() {
                 onClick={() => selecionarPerfil('cliente')}
               >
                 <span className="scout-profile-tag">CONSUMO</span>
+
                 <strong>Conhecer os produtos</strong>
+
                 <small>Meu principal interesse é o consumo.</small>
+
                 <span className="scout-card-arrow">→</span>
               </button>
 
@@ -440,8 +465,11 @@ export default function LandingPage() {
                 onClick={() => selecionarPerfil('ambos')}
               >
                 <span className="scout-profile-tag">OS DOIS</span>
+
                 <strong>Conhecer consumo e comunidade</strong>
+
                 <small>Quero compreender as duas possibilidades.</small>
+
                 <span className="scout-card-arrow">→</span>
               </button>
             </div>
@@ -553,6 +581,7 @@ export default function LandingPage() {
 
               <div className="scout-success-profile">
                 <span>SEU INTERESSE</span>
+
                 <strong>
                   {perfil === 'gestor' && 'Construção de comunidade'}
                   {perfil === 'cliente' && 'Produtos e consumo'}
