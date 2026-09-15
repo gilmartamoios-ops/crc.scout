@@ -119,14 +119,17 @@ export default function LandingPage() {
   }, [etapa]);
 
   const selecionarResposta = (valor: string) => {
-    if (!perguntaAtual) return;
+  if (!perguntaAtual) return;
 
-    setRespostas((anterior) => ({
-      ...anterior,
-      [perguntaAtual.id]: valor,
-    }));
-  };
+  setRespostas((anterior) => ({
+    ...anterior,
+    [perguntaAtual.id]: valor,
+  }));
 
+  if (etapa === 6) {
+    setEtapa(7);
+  }
+};
   const continuarPergunta = () => {
     if (!perguntaAtual || !respostaAtual) {
       return;
