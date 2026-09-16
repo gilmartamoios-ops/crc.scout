@@ -130,18 +130,42 @@ export default function LandingPage() {
     setEtapa(7);
   }
 };
-  const continuarPergunta = () => {
-    if (!perguntaAtual || !respostaAtual) {
-      return;
-    }
+  const continuarPergunta = async () => {
+  if (!perguntaAtual || !respostaAtual) {
+    return;
+  }
 
-    if (etapa < 6) {
-      setEtapa((anterior) => anterior + 1);
-    } else {
-      setEtapa(7);
-    }
+  if (etapa < 6) {
+    setEtapa((anterior) => anterior + 1);
+    return;
+  }
+
+  const registro = {
+    tipo: 'convidado',
+    titulo: 'Jornada SCOUT concluída',
+    descricao: 'Convidado concluiu o quiz e entrou na Sala de Estar',
+    dados: {
+      perfil: '',
+      respostas: {
+        ...respostas,
+        [perguntaAtual.id]: respostaAtual,
+      },
+      origem: 'scout-hall',
+      etapa: 'sala',
+      data_entrada_sala: new Date().toISOString(),
+    },
   };
 
+  const { error } = await supabase
+    .from('scout_registros')
+    .insert(registro);
+
+  if (error) {
+    console.error('SCOUT — erro ao registrar entrada na sala:', error);
+  }
+
+  window.location.href = '/sala';
+};
   const selecionarPerfil = (valor: Perfil) => {
     setPerfil(valor);
     setEtapa(8);
@@ -462,14 +486,14 @@ export default function LandingPage() {
               </div>
 
               <button
-                type="button"
-                className="scout-button scout-button-primary scout-form-button"
-                disabled={!respostaAtual}
-                onClick={continuarPergunta}
-              >
-                Continuar
-                <span>→</span>
-              </button>
+  type="button"
+  className="scout-button scout-button-primary scout-form-button"
+  disabled={!respostaAtual}
+  onClick={continuarPergunta}
+>
+  {etapa === 6 ? 'Entrar na sala' : 'Continuar'}
+  <span>→</span>
+</button>
 
               <button
                 type="button"
