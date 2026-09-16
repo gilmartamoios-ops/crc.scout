@@ -126,8 +126,8 @@ export default function LandingPage() {
     [perguntaAtual.id]: valor,
   }));
 
-  if (etapa === 6) {
-    setEtapa(7);
+  if (etapa === 4) {
+    setEtapa(5);
   }
 };
   const continuarPergunta = async () => {
@@ -491,7 +491,7 @@ export default function LandingPage() {
   disabled={!respostaAtual}
   onClick={continuarPergunta}
 >
-  {etapa === 6 ? 'Entrar na sala' : 'Continuar'}
+  {etapa === 4 ? 'Entrar na sala' : 'Continuar'}
   <span>→</span>
 </button>
 
