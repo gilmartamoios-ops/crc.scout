@@ -376,59 +376,84 @@ export default function LandingPage() {
             </div>
 
             <div className="scout-choice-row">
-              <button
-                type="button"
-                className="scout-link-button"
-                onClick={() => setEtapa(1)}
-              >
-                ← Voltar
-              </button>
-            </div>
+  <button
+    type="button"
+    className="scout-link-button"
+    onClick={() => setEtapa(1)}
+  >
+    ← Voltar
+  </button>
+
+  <button
+    type="button"
+    className="scout-primary-button"
+    onClick={() => setEtapa(2.5)}
+  >
+    Agora quero experimentar →
+  </button>
+</div>
           </section>
         )}
 
-        {etapa === 2.5 && (
-          <section className="scout-content scout-content-narrow">
-            <div className="scout-section-intro">
-              <div className="scout-eyebrow">PRÓXIMA ETAPA</div>
+        ```tsx
+{etapa === 2.5 && (
+  <section className="scout-content scout-content-narrow">
+    <div className="scout-section-intro">
+      <div className="scout-eyebrow">PRÓXIMA ETAPA</div>
 
-              <h2 className="scout-section-title">
-                Agora experimente.
-              </h2>
+      <h2 className="scout-section-title">
+        Agora experimente.
+      </h2>
 
-              <p className="scout-section-text">
-                Você acabou de conhecer o conceito. Agora pode experimentar na
-                prática uma das possibilidades do CRC.
-              </p>
-            </div>
+      <p className="scout-section-text">
+        Você acabou de conhecer o conceito. Agora pode experimentar na
+        prática uma das possibilidades do CRC.
+      </p>
+    </div>
 
-            <div className="scout-profile-options">
-              <a
-                href="https://simuladorprosff.vercel.app/"
-                className="scout-profile-card scout-profile-card-featured"
-              >
-                <span className="scout-profile-tag">SIMULADOR</span>
+    <div className="scout-profile-options">
+      <a
+  href="https://simuladorprosff.vercel.app/"
+  className="scout-profile-card scout-profile-card-featured scout-simulator-cta"
+  style={{
+    display: "block",
+    padding: "28px",
+    border: "2px solid rgba(67, 219, 232, 0.55)",
+    borderRadius: "18px",
+    background: "linear-gradient(135deg, rgba(67, 219, 232, 0.12), rgba(255, 255, 255, 0.03))",
+    boxShadow: "0 0 30px rgba(67, 219, 232, 0.12)",
+    textDecoration: "none",
+    cursor: "pointer",
+  }}
+>
+        <div className="scout-simulator-cta-content">
+          <span className="scout-profile-tag">SIMULADOR</span>
 
-                <strong>Simulador de ganhos</strong>
+          <strong>Descubra como funciona</strong>
 
-                <small>
-                  Faça uma simulação e veja como essa possibilidade pode
-                  funcionar para você.
-                </small>
+          <small>
+            Faça uma simulação e veja, na prática, como essa possibilidade
+            pode funcionar para você.
+          </small>
 
-                <span className="scout-card-arrow">→</span>
-              </a>
-            </div>
+          <span className="scout-simulator-cta-action">
+            <span>ABRIR SIMULADOR</span>
+            <span>→</span>
+          </span>
+        </div>
+      </a>
+    </div>
 
-            <button
-              type="button"
-              className="scout-link-button"
-              onClick={() => setEtapa(2)}
-            >
-              ← Voltar ao vídeo
-            </button>
-          </section>
-        )}
+    <button
+      type="button"
+      className="scout-link-button"
+      onClick={() => setEtapa(2)}
+    >
+      ← Voltar ao vídeo
+    </button>
+  </section>
+)}
+
 
         {etapa >= 3 && etapa <= 6 && perguntaAtual && (
           <section className="scout-content scout-content-narrow">

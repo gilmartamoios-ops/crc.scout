@@ -704,13 +704,41 @@ button {
 }
 
 .scout-profile-card-featured {
-  border-color: rgba(67, 219, 232, 0.23);
+  position: relative;
+  display: block;
+  padding: 26px 28px 24px;
+  border: 1px solid rgba(67, 219, 232, 0.35);
+  border-radius: 18px;
   background:
     linear-gradient(
       135deg,
-      rgba(67, 219, 232, 0.065),
-      rgba(255, 255, 255, 0.02)
+      rgba(67, 219, 232, 0.11),
+      rgba(255, 255, 255, 0.025)
     );
+  box-shadow:
+    0 0 0 1px rgba(67, 219, 232, 0.04),
+    0 14px 35px rgba(0, 0, 0, 0.28);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.scout-profile-card-featured:hover {
+  transform: translateY(-3px);
+  border-color: rgba(67, 219, 232, 0.65);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(67, 219, 232, 0.16),
+      rgba(255, 255, 255, 0.035)
+    );
+  box-shadow:
+    0 0 0 1px rgba(67, 219, 232, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.36);
 }
 
 .scout-profile-tag {
@@ -725,33 +753,46 @@ button {
   display: block;
   margin-top: 9px;
   color: var(--scout-text);
-  font-size: 15px;
+  font-size: 18px;
   line-height: 1.35;
 }
 
 .scout-profile-card small {
   display: block;
   max-width: 580px;
-  margin-top: 6px;
+  margin-top: 8px;
   color: var(--scout-muted);
   font-size: 12px;
   line-height: 1.55;
 }
 
-.scout-card-arrow {
-  position: absolute;
-  right: 22px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--scout-muted-dark);
+.scout-simulator-cta-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 11px 16px;
+  border: 1px solid rgba(67, 219, 232, 0.35);
+  border-radius: 10px;
+  color: var(--scout-cyan);
+  background: rgba(67, 219, 232, 0.07);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   transition:
-    color 180ms ease,
+    background 180ms ease,
+    border-color 180ms ease,
     transform 180ms ease;
 }
 
-.scout-profile-card:hover .scout-card-arrow {
-  color: var(--scout-cyan);
-  transform: translate(3px, -50%);
+.scout-profile-card-featured:hover .scout-simulator-cta-action {
+  background: rgba(67, 219, 232, 0.14);
+  border-color: rgba(67, 219, 232, 0.6);
+  transform: translateX(3px);
+}
+
+.scout-card-arrow {
+  display: none;
 }
 
 /* =========================================================
