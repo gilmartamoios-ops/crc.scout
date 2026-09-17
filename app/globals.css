@@ -519,6 +519,7 @@ button {
   border-radius: 20px;
   background: #000;
   aspect-ratio: 16 / 9;
+  width: 100%;
 }
 
 .scout-video {
@@ -959,10 +960,6 @@ button {
 }
 
 @media (max-width: 640px) {
-  .scout-shell {
-    width: min(100% - 32px, 1180px);
-  }
-
   .scout-header {
     padding: 20px 0;
   }
@@ -1035,5 +1032,17 @@ button {
 
   .scout-profile-card {
     min-height: 118px;
+  }
+
+    .scout-video-card {
+    margin-top: 24px;
+    padding: 0;
+    width: 100%;
+  }
+
+  .scout-video-frame {
+    aspect-ratio: 9 / 16;
+    width: 100%;
+    border-radius: 16px;
   }
 }
