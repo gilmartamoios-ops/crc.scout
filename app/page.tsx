@@ -514,7 +514,7 @@ export default function LandingPage() {
   disabled={!respostaAtual}
   onClick={continuarPergunta}
 >
-  {etapa === 4 ? 'Entrar na sala' : 'Continuar'}
+  {etapa === 6 ? 'Entrar na sala' : 'Continuar'}
   <span>→</span>
 </button>
 
