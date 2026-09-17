@@ -11,52 +11,22 @@ type Modulo = {
 const modulos: Modulo[] = [
   {
     nome: 'Informativos',
-    descricao: 'Conhecimento e referências para o desenvolvimento.',
+    descricao: 'Informes, atualizações e notícias do mercado.',
     icone: '◈',
   },
   {
     nome: 'Mentoria',
-    descricao: 'Desenvolvimento e acompanhamento do gestor.',
+    descricao: 'Gestão de comunidade e desenvolvimento de liderança.',
     icone: '✦',
   },
   {
     nome: 'Curadoria',
-    descricao: 'Produtos, oportunidades e referências selecionadas.',
+    descricao: 'Ciência do produto, produtos e ativos selecionados.',
     icone: '◇',
   },
   {
-    nome: 'Comunidade',
-    descricao: 'Relacionamento, organização e evolução da rede.',
-    icone: '◎',
-  },
-  {
-  nome: 'Convidados',
-  descricao: 'Acompanhamento da jornada dos seus convidados.',
-  icone: '○',
-},
-{
-  nome: 'Convite',
-  descricao: 'Material para apresentar o CRC.',
-  icone: '◇',
-},
-  {
-    nome: 'Ações',
-    descricao: 'Atividades e iniciativas da comunidade.',
-    icone: '△',
-  },
-  {
-    nome: 'Agenda',
-    descricao: 'Compromissos e próximos movimentos.',
-    icone: '□',
-  },
-  {
-    nome: 'Recursos',
-    descricao: 'Materiais e ferramentas de apoio.',
-    icone: '◫',
-  },
-  {
     nome: 'Seu SCOUT',
-    descricao: 'Seu ambiente pessoal de operação.',
+    descricao: 'Sua operação de prospecção e gestão de convidados.',
     icone: '✧',
   },
 ];
