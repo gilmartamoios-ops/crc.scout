@@ -30,10 +30,15 @@ const modulos: Modulo[] = [
     icone: '◎',
   },
   {
-    nome: 'Convidados',
-    descricao: 'Acompanhamento da jornada dos seus convidados.',
-    icone: '○',
-  },
+  nome: 'Convidados',
+  descricao: 'Acompanhamento da jornada dos seus convidados.',
+  icone: '○',
+},
+{
+  nome: 'Convite',
+  descricao: 'Material para apresentar o CRC.',
+  icone: '◇',
+},
   {
     nome: 'Ações',
     descricao: 'Atividades e iniciativas da comunidade.',
@@ -1165,10 +1170,10 @@ export default function SalaPage() {
           }
 
           .sala-table-scene {
-            min-height: 250px;
-          }
+  min-height: 250px;
+}
 
-          .sala-door-list {
+.sala-door-list {
             grid-template-columns: 1fr;
           }
 
