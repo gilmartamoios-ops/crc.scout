@@ -126,9 +126,7 @@ export default function LandingPage() {
     [perguntaAtual.id]: valor,
   }));
 
-  if (etapa === 4) {
-    setEtapa(5);
-  }
+  
 };
   const continuarPergunta = async () => {
   if (!perguntaAtual || !respostaAtual) {
