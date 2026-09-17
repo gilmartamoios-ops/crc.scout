@@ -138,6 +138,8 @@ export default function LandingPage() {
     return;
   }
 
+  console.log('SCOUT — entrou na função continuarPergunta');
+
   const registro = {
     tipo: 'convidado',
     titulo: 'Jornada SCOUT concluÃ­da',
