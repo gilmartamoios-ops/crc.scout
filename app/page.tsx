@@ -395,7 +395,7 @@ export default function LandingPage() {
           </section>
         )}
 
-        ```tsx
+      
 {etapa === 2.5 && (
   <section className="scout-content scout-content-narrow">
     <div className="scout-section-intro">
