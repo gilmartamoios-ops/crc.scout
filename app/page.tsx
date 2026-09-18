@@ -160,8 +160,9 @@ export default function LandingPage() {
     .insert(registro);
 
   if (error) {
-    console.error('SCOUT â€” erro ao registrar entrada na sala:', error);
-  }
+  alert(`ERRO SUPABASE: ${error.message}`);
+  return;
+}
 
   window.location.href = '/sala';
 };
