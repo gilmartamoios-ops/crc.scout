@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 type Modulo = {
   nome: string;
@@ -34,6 +34,28 @@ const modulos: Modulo[] = [
 export default function SalaPage() {
   const [moduloSelecionado, setModuloSelecionado] =
     useState<Modulo | null>(null);
+const [gestor, setGestor] = useState<{
+  id: string;
+  nome: string;
+  whatsapp: string;
+  slug: string | null;
+} | null>(null);
+
+useEffect(() => {
+  const dados = sessionStorage.getItem('scout_gestor');
+
+  if (!dados) return;
+
+  try {
+    const gestorSalvo = JSON.parse(dados);
+
+    if (gestorSalvo?.id && gestorSalvo?.nome) {
+      setGestor(gestorSalvo);
+    }
+  } catch {
+    sessionStorage.removeItem('scout_gestor');
+  }
+}, []);
 
   return (
     <main className="sala-page">
@@ -84,12 +106,28 @@ export default function SalaPage() {
             </nav>
 
             <div className="sala-sidebar-footer">
-              <span className="sala-visitor-tag">VISITANTE</span>
+  {gestor ? (
+    <>
+      <span className="sala-visitor-tag">GESTOR DE COMUNIDADE</span>
 
-              <p>
-                Você está conhecendo o ambiente operacional do CRC.
-              </p>
-            </div>
+      <strong className="sala-gestor-name">
+        {gestor.nome}
+      </strong>
+
+      <p>
+        Você está na sua Sala de Estar.
+      </p>
+    </>
+  ) : (
+    <>
+      <span className="sala-visitor-tag">CONVIDADO</span>
+
+      <p>
+        Você está conhecendo o ambiente operacional do CRC.
+      </p>
+    </>
+  )}
+</div>
           </aside>
 
           <section className="sala-main">
@@ -564,6 +602,14 @@ export default function SalaPage() {
           font-weight: 800;
           letter-spacing: 1.2px;
         }
+.sala-gestor-name {
+  display: block;
+  margin-top: 10px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.3;
+}
 
         .sala-sidebar-footer p {
           margin-top: 10px;

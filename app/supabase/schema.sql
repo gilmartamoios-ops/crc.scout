@@ -188,3 +188,36 @@ create index if not exists idx_convites_nucleo
 -- ============================================
 -- FIM DO SCHEMA CRC.SCOUT
 -- ============================================
+
+-- ============================================
+-- 7. GESTORES DO SCOUT
+-- ============================================
+
+create table if not exists gestores (
+  id uuid primary key references auth.users(id)
+    on delete cascade,
+
+  nome text,
+  whatsapp text unique not null,
+
+  status text not null default 'ativo'
+    check (status in ('ativo', 'inativo', 'pendente')),
+
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+
+-- ============================================
+-- 8. ÍNDICE
+-- ============================================
+
+create index if not exists idx_gestores_whatsapp
+  on gestores(whatsapp);
+
+
+-- ============================================
+-- 9. SEGURANÇA DOS GESTORES
+-- ============================================
+
+alter table gestores enable row level security;
