@@ -137,7 +137,6 @@ export default function LandingPage() {
     return;
   }
 
-  alert('SCOUT — entrou na função continuarPergunta');
 
   const registro = {
     tipo: 'convidado',
@@ -245,14 +244,6 @@ export default function LandingPage() {
       setEtapa(7);
     }
   };
-
-
-
-
-
-
-
-
  
   return (
     <main className="scout-landing">
@@ -435,12 +426,6 @@ export default function LandingPage() {
   }}
 >
 
-
-
-
-
-
-
         <div className="scout-simulator-cta-content">
           <span className="scout-profile-tag">SIMULADOR</span>
 
@@ -606,11 +591,6 @@ export default function LandingPage() {
                 <span className="scout-card-arrow">â†’</span>
               </button>
             </div>
-
-
-
-
-
 
             <button
               type="button"
