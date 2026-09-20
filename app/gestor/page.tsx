@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -24,25 +25,6 @@ export default function GestorPage() {
     }
 
     setCarregando(true);
-
-    const { data: gestor, error: gestorError } = await supabase
-      .from('gestores')
-      .select('id, nome, whatsapp, slug, email')
-      .eq('email', emailLimpo)
-      .maybeSingle();
-
-    if (gestorError) {
-      console.error('Erro ao verificar gestor:', gestorError);
-      setMensagem('Não foi possível verificar o acesso.');
-      setCarregando(false);
-      return;
-    }
-
-    if (!gestor) {
-      setMensagem('Este e-mail não está autorizado como gestor.');
-      setCarregando(false);
-      return;
-    }
 
     const { error } = await supabase.auth.signInWithOtp({
       email: emailLimpo,
@@ -94,9 +76,17 @@ export default function GestorPage() {
       .eq('email', emailLimpo)
       .maybeSingle();
 
-    if (gestorError || !gestor) {
+    if (gestorError) {
+      console.error('Erro ao localizar gestor:', gestorError);
       await supabase.auth.signOut();
-      setMensagem('Gestor não autorizado.');
+      setMensagem('Não foi possível confirmar o cadastro do gestor.');
+      setCarregando(false);
+      return;
+    }
+
+    if (!gestor) {
+      await supabase.auth.signOut();
+      setMensagem('Este e-mail não está autorizado como gestor.');
       setCarregando(false);
       return;
     }
@@ -163,7 +153,7 @@ export default function GestorPage() {
                 disabled={carregando}
                 className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold rounded-xl py-3 text-sm transition"
               >
-                {carregando ? 'Verificando...' : 'Enviar código'}
+                {carregando ? 'Enviando...' : 'Enviar código'}
               </button>
             </>
           ) : (
@@ -217,3 +207,4 @@ export default function GestorPage() {
     </main>
   );
 }
+
