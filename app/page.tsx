@@ -261,14 +261,21 @@ export default function LandingPage() {
               />
             </div>
 
-            <div className="scout-brand-copy">
-              <div className="scout-brand-name">SCOUT.CRC</div>
-              <div className="scout-brand-subtitle">
-                inteligÃªncia para comunidades
-              </div>
-            </div>
-          </div>
+            <div className="scout-brand-copy"> 
+  <div className="scout-brand-name">SCOUT.CRC</div> 
+  <div className="scout-brand-subtitle"> 
+    inteligÃªncia para comunidades 
+  </div>
 
+  <a
+    href="/gestor"
+    className="scout-gestor-link"
+  >
+    Acesso do Gestor
+  </a>
+</div>
+      
+</div>
           <div className="scout-header-note">CONHEÃ‡A Â· EXPLORE Â· DECIDA</div>
         </header>
 
