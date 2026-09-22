@@ -267,12 +267,12 @@ export default function LandingPage() {
     inteligÃªncia para comunidades 
   </div>
 
-  <a
-    href="/gestor"
-    className="scout-gestor-link"
-  >
-    Acesso do Gestor
-  </a>
+<a
+  href="/sala"
+  className="scout-gestor-link"
+>
+  Acesso do Gestor
+</a>  
 </div>
       
 </div>
