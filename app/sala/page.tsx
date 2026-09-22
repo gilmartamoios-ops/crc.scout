@@ -83,10 +83,16 @@ useEffect(() => {
             </div>
           </div>
 
-          <div className="sala-header-status">
-            <span className="sala-status-dot" />
-            AMBIENTE CRC
-          </div>
+         <div className="sala-header-status">
+  <button
+    type="button"
+    onClick={() => setMostrarChave(true)}
+  >
+    🔑 Chave do gestor
+  </button>
+  <span className="sala-status-dot" />
+  AMBIENTE CRC
+</div>
         </header>
 
         <div className="sala-layout">
