@@ -97,7 +97,10 @@ useEffect(() => {
          <div className="sala-header-status">
   <button
     type="button"
-    onClick={() => setMostrarChave(true)}
+    onClick={() => {
+  if (gestorDesbloqueado) return;
+  window.location.href = '/gestor';
+}}
   >
     🔑 Chave do gestor
   </button>
