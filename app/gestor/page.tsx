@@ -15,6 +15,8 @@ export default function GestorPage() {
   const [carregando, setCarregando] = useState(false);
 
   async function enviarCodigo() {
+  console.log('SCOUT — enviarCodigo foi executada');
+
     setMensagem('');
 
     const emailLimpo = email.trim().toLowerCase();
