@@ -50,9 +50,8 @@ const abrirModulo = (modulo: Modulo) => {
     return;
   }
 
-  setModuloSelecionado(null);
-  setMostrarChave(true);
-};
+  window.location.href = '/gestor';
+};;
 useEffect(() => {
   async function verificarSessao() {
     const { data, error } = await supabase.auth.getSession();
@@ -465,7 +464,7 @@ useEffect(() => {
             <div className="sala-modal-message">
               Digite sua chave de acesso para liberar os ambientes
               operacionais.
-            </div>
+            </div>iberar acesso
 
             <input
               type="text"
