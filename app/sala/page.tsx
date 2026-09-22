@@ -36,8 +36,8 @@ export default function SalaPage() {
   const [moduloSelecionado, setModuloSelecionado] =
     useState<Modulo | null>(null);
    const [gestorDesbloqueado, setGestorDesbloqueado] = useState(false);
-const [chaveAcesso, setChaveAcesso] = useState('');
-const [mostrarChave, setMostrarChave] = useState(false); 
+
+
 const [gestor, setGestor] = useState<{
   id: string;
   nome: string;
@@ -442,67 +442,7 @@ useEffect(() => {
         </div>
       )}
 
-      {mostrarChave && (
-        <div
-          className="sala-modal-backdrop"
-          onClick={() => setMostrarChave(false)}
-        >
-          <div
-            className="sala-modal"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="sala-modal-lock">⌕</div>
-
-            <div className="sala-eyebrow">ACESSO DE GESTOR</div>
-
-            <h2>Você possui a chave?</h2>
-
-            <p>
-              Este ambiente é reservado aos gestores CRC.
-            </p>
-
-            <div className="sala-modal-message">
-              Digite sua chave de acesso para liberar os ambientes
-              operacionais.
-            </div>iberar acesso
-
-            <input
-              type="text"
-              value={chaveAcesso}
-              onChange={(event) => setChaveAcesso(event.target.value)}
-              placeholder="Digite sua chave"
-              className="sala-chave-input"
-              autoFocus
-            />
-
-            <button
-              type="button"
-              className="sala-modal-close"
-              onClick={() => {
-                if (chaveAcesso.trim()) {
-                  setGestorDesbloqueado(true);
-                  setMostrarChave(false);
-                  setChaveAcesso('');
-                }
-              }}
-            >
-              Liberar acesso
-            </button>
-
-            <button
-              type="button"
-              className="sala-modal-close"
-              onClick={() => {
-                setMostrarChave(false);
-                setChaveAcesso('');
-              }}
-            >
-              Voltar à Sala
-            </button>
-          </div>
-        </div>
-      )}
-
+     
       <style jsx>{`
         .sala-page {
           min-height: 100vh;
