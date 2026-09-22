@@ -68,9 +68,10 @@ useEffect(() => {
     try {
       const gestorSalvo = JSON.parse(dados);
 
-      if (gestorSalvo?.id && gestorSalvo?.nome) {
-        setGestor(gestorSalvo);
-      }
+     if (gestorSalvo?.id && gestorSalvo?.nome) {
+  setGestor(gestorSalvo);
+  setGestorDesbloqueado(true);
+}
     } catch {
       sessionStorage.removeItem('scout_gestor');
     }
