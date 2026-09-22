@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 type Modulo = {
   nome: string;
@@ -53,19 +54,29 @@ const abrirModulo = (modulo: Modulo) => {
   setMostrarChave(true);
 };
 useEffect(() => {
-  const dados = sessionStorage.getItem('scout_gestor');
+  async function verificarSessao() {
+    const { data, error } = await supabase.auth.getSession();
 
-  if (!dados) return;
-
-  try {
-    const gestorSalvo = JSON.parse(dados);
-
-    if (gestorSalvo?.id && gestorSalvo?.nome) {
-      setGestor(gestorSalvo);
+    if (error || !data.session) {
+      return;
     }
-  } catch {
-    sessionStorage.removeItem('scout_gestor');
+
+    const dados = sessionStorage.getItem('scout_gestor');
+
+    if (!dados) return;
+
+    try {
+      const gestorSalvo = JSON.parse(dados);
+
+      if (gestorSalvo?.id && gestorSalvo?.nome) {
+        setGestor(gestorSalvo);
+      }
+    } catch {
+      sessionStorage.removeItem('scout_gestor');
+    }
   }
+
+  verificarSessao();
 }, []);
 
   return (
@@ -1171,6 +1182,11 @@ useEffect(() => {
           font-size: 11px;
           line-height: 1.6;
         }
+
+.sala-chave-input {
+  color: #111;
+  background: #fff;
+}
 
         .sala-modal-message strong {
           color: #f0f3f3;
