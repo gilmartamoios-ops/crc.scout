@@ -31,8 +31,9 @@ export default function GestorPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email: emailLimpo,
       options: {
-        shouldCreateUser: false,
-      },
+  shouldCreateUser: false,
+  emailRedirectTo: 'https://crc-scout.vercel.app/gestor',
+},
     });
 
     if (error) {
