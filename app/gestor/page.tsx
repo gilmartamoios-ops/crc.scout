@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -13,11 +13,10 @@ export default function GestorPage() {
   const [etapa, setEtapa] = useState<'email' | 'codigo'>('email');
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const enviandoRef = useRef(false);
 
-  async function enviarCodigo() {
-  console.log('SCOUT — enviarCodigo foi executada');
-
-    setMensagem('');
+    async function enviarCodigo() {
+    if (enviandoRef.current) return;
 
     const emailLimpo = email.trim().toLowerCase();
 
@@ -26,28 +25,33 @@ export default function GestorPage() {
       return;
     }
 
+    enviandoRef.current = true;
+    console.log('SCOUT — enviarCodigo foi executada');
+
+    setMensagem('');
     setCarregando(true);
 
     const { error } = await supabase.auth.signInWithOtp({
       email: emailLimpo,
       options: {
-  shouldCreateUser: false,
-  emailRedirectTo: 'https://crc-scout.vercel.app/gestor',
-},
+        shouldCreateUser: false,
+        emailRedirectTo: 'https://crc-scout.vercel.app/gestor',
+      },
     });
 
     if (error) {
       console.error('Erro ao enviar código:', error);
       setMensagem('Não foi possível enviar o código de acesso.');
       setCarregando(false);
+      enviandoRef.current = false;
       return;
     }
 
     setMensagem('Código enviado para seu e-mail.');
     setEtapa('codigo');
     setCarregando(false);
+    enviandoRef.current = false;
   }
-
   async function confirmarCodigo() {
     setMensagem('');
 
@@ -210,4 +214,6 @@ export default function GestorPage() {
     </main>
   );
 }
+
+
 
