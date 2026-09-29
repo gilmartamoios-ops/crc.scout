@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -8,68 +9,24 @@ export default function GestorPage() {
   const router = useRouter();
 
   const [email, setEmail] = useState('');
+  const [codigo, setCodigo] = useState('');
+  const [etapa, setEtapa] = useState<'email' | 'codigo'>('email');
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
+  const enviandoRef = useRef(false);
 
-    useEffect(() => {
-    async function verificarAcesso() {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get('code');
+    async function enviarCodigo() {
+    if (enviandoRef.current) return;
 
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-
-        if (error) {
-          console.error('Erro ao trocar código por sessão:', error);
-          setMensagem('O link de acesso expirou ou já foi utilizado.');
-          return;
-        }
-
-        window.history.replaceState({}, document.title, '/gestor');
-      }
-
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error || !data.session?.user?.email) {
-        return;
-      }
-
-      const emailAutenticado = data.session.user.email.trim().toLowerCase();
-
-      const { data: gestor, error: gestorError } = await supabase
-        .from('gestores')
-        .select('id, nome, whatsapp, slug, email')
-        .eq('email', emailAutenticado)
-        .maybeSingle();
-
-      if (gestorError || !gestor) {
-        await supabase.auth.signOut();
-        setMensagem('Este e-mail não está autorizado como gestor.');
-        return;
-      }
-
-      sessionStorage.setItem(
-        'scout_gestor',
-        JSON.stringify({
-          id: gestor.id,
-          nome: gestor.nome,
-          whatsapp: gestor.whatsapp,
-          slug: gestor.slug,
-        })
-      );
-
-      router.push('/sala');
-    }
-
-    verificarAcesso();
-  }, [router]);
-  async function enviarLink() {
     const emailLimpo = email.trim().toLowerCase();
 
     if (!emailLimpo) {
       setMensagem('Digite seu e-mail.');
       return;
     }
+
+    enviandoRef.current = true;
+    console.log('SCOUT — enviarCodigo foi executada');
 
     setMensagem('');
     setCarregando(true);
@@ -83,14 +40,75 @@ export default function GestorPage() {
     });
 
     if (error) {
-      console.error('Erro ao enviar link:', error);
-      setMensagem('Não foi possível enviar o link de acesso.');
+      console.error('Erro ao enviar código:', error);
+      setMensagem('Não foi possível enviar o código de acesso.');
+      setCarregando(false);
+      enviandoRef.current = false;
+      return;
+    }
+
+    setMensagem('Código enviado para seu e-mail.');
+    setEtapa('codigo');
+    setCarregando(false);
+    enviandoRef.current = false;
+  }
+  async function confirmarCodigo() {
+    setMensagem('');
+
+    const emailLimpo = email.trim().toLowerCase();
+
+    if (!codigo.trim()) {
+      setMensagem('Digite o código recebido.');
+      return;
+    }
+
+    setCarregando(true);
+
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: emailLimpo,
+      token: codigo.trim(),
+      type: 'email',
+    });
+
+    if (error || !data.session) {
+      console.error('Erro ao confirmar código:', error);
+      setMensagem('Código inválido ou expirado.');
       setCarregando(false);
       return;
     }
 
-    setMensagem('Link de acesso enviado para seu e-mail.');
-    setCarregando(false);
+    const { data: gestor, error: gestorError } = await supabase
+      .from('gestores')
+      .select('id, nome, whatsapp, slug, email')
+      .eq('email', emailLimpo)
+      .maybeSingle();
+
+    if (gestorError) {
+      console.error('Erro ao localizar gestor:', gestorError);
+      await supabase.auth.signOut();
+      setMensagem('Não foi possível confirmar o cadastro do gestor.');
+      setCarregando(false);
+      return;
+    }
+
+    if (!gestor) {
+      await supabase.auth.signOut();
+      setMensagem('Este e-mail não está autorizado como gestor.');
+      setCarregando(false);
+      return;
+    }
+
+    sessionStorage.setItem(
+      'scout_gestor',
+      JSON.stringify({
+        id: gestor.id,
+        nome: gestor.nome,
+        whatsapp: gestor.whatsapp,
+        slug: gestor.slug,
+      })
+    );
+
+    router.push('/sala');
   }
 
   return (
@@ -106,42 +124,96 @@ export default function GestorPage() {
           </h1>
 
           <p className="text-sm text-neutral-400">
-            Informe o e-mail autorizado no CRC.
+            {etapa === 'email'
+              ? 'Informe o e-mail autorizado no CRC.'
+              : 'Digite o código enviado para seu e-mail.'}
           </p>
         </div>
 
         <div className="bg-neutral-900 border border-neutral-800 rounded-2xl p-5 space-y-4">
-          <div>
-            <label className="block text-xs text-neutral-400 mb-2">
-              E-mail
-            </label>
+          {etapa === 'email' ? (
+            <>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">
+                  E-mail
+                </label>
 
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              autoComplete="email"
-              className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-cyan-500"
-            />
-          </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  autoComplete="email"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-cyan-500"
+                />
+              </div>
 
-          {mensagem && (
-            <p className="text-xs text-neutral-300">
-              {mensagem}
-            </p>
+              {mensagem && (
+                <p className="text-xs text-red-400">
+                  {mensagem}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={enviarCodigo}
+                disabled={carregando}
+                className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold rounded-xl py-3 text-sm transition"
+              >
+                {carregando ? 'Enviando...' : 'Enviar código'}
+              </button>
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-xs text-neutral-400 mb-2">
+                  Código de acesso
+                </label>
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={codigo}
+                  onChange={(e) => setCodigo(e.target.value)}
+                  placeholder="Digite o código recebido"
+                  autoComplete="one-time-code"
+                  className="w-full bg-neutral-950 border border-neutral-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              {mensagem && (
+                <p className="text-xs text-neutral-300">
+                  {mensagem}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={confirmarCodigo}
+                disabled={carregando}
+                className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold rounded-xl py-3 text-sm transition"
+              >
+                {carregando ? 'Confirmando...' : 'Confirmar acesso'}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setEtapa('email');
+                  setCodigo('');
+                  setMensagem('');
+                }}
+                className="w-full text-xs text-neutral-500 hover:text-neutral-300"
+              >
+                Usar outro e-mail
+              </button>
+            </>
           )}
-
-          <button
-            type="button"
-            onClick={enviarLink}
-            disabled={carregando}
-            className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:opacity-50 text-black font-semibold rounded-xl py-3 text-sm transition"
-          >
-            {carregando ? 'Enviando...' : 'Enviar link de acesso'}
-          </button>
         </div>
       </div>
     </main>
   );
 }
+
+
+
