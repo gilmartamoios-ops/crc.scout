@@ -11,8 +11,23 @@ export default function GestorPage() {
   const [mensagem, setMensagem] = useState('');
   const [carregando, setCarregando] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     async function verificarAcesso() {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get('code');
+
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+        if (error) {
+          console.error('Erro ao trocar código por sessão:', error);
+          setMensagem('O link de acesso expirou ou já foi utilizado.');
+          return;
+        }
+
+        window.history.replaceState({}, document.title, '/gestor');
+      }
+
       const { data, error } = await supabase.auth.getSession();
 
       if (error || !data.session?.user?.email) {
@@ -48,7 +63,6 @@ export default function GestorPage() {
 
     verificarAcesso();
   }, [router]);
-
   async function enviarLink() {
     const emailLimpo = email.trim().toLowerCase();
 
