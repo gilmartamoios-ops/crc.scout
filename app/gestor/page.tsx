@@ -80,7 +80,7 @@ export default function GestorPage() {
     const { data: gestor, error: gestorError } = await supabase
       .from('gestores')
       .select('id, nome, whatsapp, slug, email')
-      .eq('email', emailLimpo)
+      .ilike('email', emailLimpo)
       .maybeSingle();
 
     if (gestorError) {
@@ -214,6 +214,7 @@ export default function GestorPage() {
     </main>
   );
 }
+
 
 
 
