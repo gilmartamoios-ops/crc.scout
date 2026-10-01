@@ -53,51 +53,24 @@ const abrirModulo = (modulo: Modulo) => {
   window.location.href = '/gestor';
 };;
 useEffect(() => {
-  async function verificarGestor() {
-    const { data: sessionData, error: sessionError } =
-      await supabase.auth.getSession();
+  function verificarSessao() {
+    const dados = sessionStorage.getItem('scout_gestor');
 
-    if (sessionError || !sessionData.session?.user?.email) {
-      return;
+    if (!dados) return;
+
+    try {
+      const gestorSalvo = JSON.parse(dados);
+
+      if (gestorSalvo?.id && gestorSalvo?.nome) {
+        setGestor(gestorSalvo);
+        setGestorDesbloqueado(true);
+      }
+    } catch {
+      sessionStorage.removeItem('scout_gestor');
     }
-
-    const email = sessionData.session.user.email.trim().toLowerCase();
-
-    const { data: gestorEncontrado, error: gestorError } = await supabase
-      .from('gestores')
-      .select('id, nome, whatsapp, slug')
-      .ilike('email', email)
-      .maybeSingle();
-
-    if (gestorError) {
-      console.error(
-        'SCOUT — erro ao verificar gestor na Sala:',
-        gestorError
-      );
-      return;
-    }
-
-    if (!gestorEncontrado) {
-      return;
-    }
-
-    const gestorAtual = {
-      id: gestorEncontrado.id,
-      nome: gestorEncontrado.nome,
-      whatsapp: gestorEncontrado.whatsapp,
-      slug: gestorEncontrado.slug,
-    };
-
-    setGestor(gestorAtual);
-    setGestorDesbloqueado(true);
-
-    sessionStorage.setItem(
-      'scout_gestor',
-      JSON.stringify(gestorAtual)
-    );
   }
 
-  verificarGestor();
+  verificarSessao();
 }, []);
 
   return (
