@@ -53,13 +53,8 @@ const abrirModulo = (modulo: Modulo) => {
   window.location.href = '/gestor';
 };;
 useEffect(() => {
-  async function verificarSessao() {
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error || !data.session) {
-      return;
-    }
-
+  
+    function verificarSessao() {
     const dados = sessionStorage.getItem('scout_gestor');
 
     if (!dados) return;
