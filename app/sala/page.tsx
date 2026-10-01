@@ -89,15 +89,22 @@ useEffect(() => {
           </div>
 
          <div className="sala-header-status">
-  <button
-    type="button"
-    onClick={() => {
-  if (gestorDesbloqueado) return;
-  window.location.href = '/gestor';
-}}
-  >
-    🔑 Chave do gestor
-  </button>
+  {gestor ? (
+    <span>
+      GESTOR · {gestor.nome}
+    </span>
+  ) : (
+    <button
+      type="button"
+      onClick={() => {
+        if (gestorDesbloqueado) return;
+        window.location.href = '/gestor';
+      }}
+    >
+      🔑 Chave do gestor
+    </button>
+  )}
+
   <span className="sala-status-dot" />
   AMBIENTE CRC
 </div>
