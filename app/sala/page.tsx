@@ -406,40 +406,53 @@ useEffect(() => {
       </div>
 
       {moduloSelecionado && (
-        <div
-          className="sala-modal-backdrop"
-          onClick={() => setModuloSelecionado(null)}
-        >
-          <div
-            className="sala-modal"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="sala-modal-lock">⌕</div>
+  <div
+    className="sala-modal-backdrop"
+    onClick={() => setModuloSelecionado(null)}
+  >
+    <div
+      className="sala-modal"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <div className="sala-modal-lock">
+        {gestorDesbloqueado ? '◈' : '⌕'}
+      </div>
 
-            <div className="sala-eyebrow">ACESSO RESTRITO</div>
+      <div className="sala-eyebrow">
+        {gestorDesbloqueado ? 'AMBIENTE EM PREPARAÇÃO' : 'ACESSO RESTRITO'}
+      </div>
 
-            <h2>{moduloSelecionado.nome}</h2>
+      <h2>{moduloSelecionado.nome}</h2>
 
-            <p>{moduloSelecionado.descricao}</p>
+      <p>{moduloSelecionado.descricao}</p>
 
-            <div className="sala-modal-message">
-              Este equipamento faz parte da rotina operacional dos gestores
-              CRC.
-              <br />
-              <strong>Você já consegue vê-lo. A chave vem depois.</strong>
-            </div>
+      <div className="sala-modal-message">
+        {gestorDesbloqueado ? (
+          <>
+            Este ambiente está sendo preparado para receber seu conteúdo.
+            <br />
+            <strong>Em breve este espaço estará disponível.</strong>
+          </>
+        ) : (
+          <>
+            Este equipamento faz parte da rotina operacional dos gestores
+            CRC.
+            <br />
+            <strong>Você já consegue vê-lo. A chave vem depois.</strong>
+          </>
+        )}
+      </div>
 
-            <button
-              type="button"
-              className="sala-modal-close"
-              onClick={() => setModuloSelecionado(null)}
-            >
-              Voltar à Sala
-            </button>
-          </div>
-        </div>
-      )}
-
+      <button
+        type="button"
+        className="sala-modal-close"
+        onClick={() => setModuloSelecionado(null)}
+      >
+        Voltar à Sala
+      </button>
+    </div>
+  </div>
+)}
      
       <style jsx>{`
         .sala-page {
