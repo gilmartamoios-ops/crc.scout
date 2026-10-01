@@ -16,9 +16,23 @@ export default async function GestorPublicoPage({ params }: Props) {
     .eq('slug', slug)
     .maybeSingle();
 
-  if (error || !gestor) {
-    notFound();
-  }
+  if (error) {
+  return (
+    <main>
+      <h1>ERRO NA CONSULTA</h1>
+      <pre>{JSON.stringify(error, null, 2)}</pre>
+    </main>
+  );
+}
+
+if (!gestor) {
+  return (
+    <main>
+      <h1>GESTOR NÃO ENCONTRADO</h1>
+      <p>Slug recebido: {slug}</p>
+    </main>
+  );
+}
 
   return (
     <main>
