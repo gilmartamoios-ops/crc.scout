@@ -35,9 +35,13 @@ if (!gestor) {
 }
 
   return (
-    <main>
-      <h1>SCOUT.CRC</h1>
-      <p>Prospecção vinculada a {gestor.nome}</p>
-    </main>
-  );
+  <main>
+    <h1>SCOUT.CRC</h1>
+    <p>Prospecção vinculada a {gestor.nome}</p>
+
+    <a href={`/?gestor_id=${gestor.id}`}>
+      Entrar no SCOUT
+    </a>
+  </main>
+);
 }
