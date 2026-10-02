@@ -31,6 +31,7 @@ export default function LandingPage() {
   const [carregando, setCarregando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState('');
+  const [gestorId, setGestorId] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -91,12 +92,19 @@ export default function LandingPage() {
     : '';
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
 
-    if (params.get('etapa') === 'quiz') {
-      setEtapa(3);
-    }
-  }, []);
+  const gestorIdParam = params.get('gestor_id');
+
+  if (gestorIdParam) {
+    setGestorId(gestorIdParam);
+    sessionStorage.setItem('scout_gestor_origem', gestorIdParam);
+  }
+
+  if (params.get('etapa') === 'quiz') {
+    setEtapa(3);
+  }
+}, []);
 
   useEffect(() => {
     if (etapa !== 2 || !videoRef.current) {
@@ -139,6 +147,7 @@ export default function LandingPage() {
 
 
   const registro = {
+    gestor_id: gestorId,
     tipo: 'convidado',
     titulo: 'Jornada SCOUT concluÃ­da',
     descricao: 'Convidado concluiu o quiz e entrou na Sala de Estar',
@@ -206,6 +215,7 @@ export default function LandingPage() {
 
     const { error } = await supabase.from('scout_registros').insert({
       tipo: 'convidado',
+       gestor_id: gestorId,
       titulo: 'Novo convidado SCOUT',
       descricao: `Cadastro concluÃ­do por ${nome.trim()}`,
       dados: convidado,
