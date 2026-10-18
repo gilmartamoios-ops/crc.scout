@@ -7,6 +7,7 @@ type Modulo = {
   nome: string;
   descricao: string;
   icone: string;
+  sublinks?: string[];
 };
 
 const modulos: Modulo[] = [
@@ -29,11 +30,13 @@ const modulos: Modulo[] = [
     nome: 'Seu SCOUT',
     descricao: 'Sua operação de prospecção e gestão de convidados.',
     icone: '✧',
+    sublinks: ['Prospecto Digital', 'Santinho Digital'],
   },
 ];
 
 export default function SalaPage() {
   const [moduloAtivo, setModuloAtivo] = useState<string | null>(null);
+  const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>(null);
   const [moduloRestrito, setModuloRestrito] = useState<Modulo | null>(null);
   const [gestorDesbloqueado, setGestorDesbloqueado] = useState(false);
 
@@ -46,12 +49,15 @@ export default function SalaPage() {
 
   const lidarComCliqueModulo = (modulo: Modulo) => {
     if (!gestorDesbloqueado) {
-      // Se for lead/convidado, abre o modal de aviso de validação/X1
       setModuloRestrito(modulo);
       return;
     }
-    // Se for gestor liberado, exibe o conteúdo no centro da tela
     setModuloAtivo(modulo.nome);
+    if (modulo.sublinks && modulo.sublinks.length > 0) {
+      setSubModuloAtivo(modulo.sublinks[0]); // Seleciona o primeiro sub-link por padrão
+    } else {
+      setSubModuloAtivo(null);
+    }
   };
 
   useEffect(() => {
@@ -73,7 +79,7 @@ export default function SalaPage() {
     verificarSessao();
   }, []);
 
-  const linkSantinho = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
+  const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
 
   return (
     <main className="sala-page">
@@ -119,19 +125,36 @@ export default function SalaPage() {
 
             <nav className="sala-menu">
               {modulos.map((modulo) => (
-                <button
-                  key={modulo.nome}
-                  type="button"
-                  className={`sala-menu-item ${moduloAtivo === modulo.nome ? 'active' : ''}`}
-                  onClick={() => lidarComCliqueModulo(modulo)}
-                >
-                  <span className="sala-menu-icon">{modulo.icone}</span>
-                  <span className="sala-menu-copy">
-                    <strong>{modulo.nome}</strong>
-                    <small>{gestorDesbloqueado ? 'acesso de gestor' : '🔒 restrito'}</small>
-                  </span>
-                  <span className="sala-lock">{gestorDesbloqueado ? '✦' : '⌕'}</span>
-                </button>
+                <div key={modulo.nome} className="sala-menu-group">
+                  <button
+                    type="button"
+                    className={`sala-menu-item ${moduloAtivo === modulo.nome ? 'active' : ''}`}
+                    onClick={() => lidarComCliqueModulo(modulo)}
+                  >
+                    <span className="sala-menu-icon">{modulo.icone}</span>
+                    <span className="sala-menu-copy">
+                      <strong>{modulo.nome}</strong>
+                      <small>{gestorDesbloqueado ? 'acesso de gestor' : '🔒 restrito'}</small>
+                    </span>
+                    <span className="sala-lock">{gestorDesbloqueado ? '✦' : '⌕'}</span>
+                  </button>
+
+                  {/* Sub-links visíveis apenas para o Gestor quando expandido "Seu SCOUT" */}
+                  {gestorDesbloqueado && modulo.sublinks && moduloAtivo === modulo.nome && (
+                    <div className="sala-sublinks">
+                      {modulo.sublinks.map((sub) => (
+                        <button
+                          key={sub}
+                          type="button"
+                          className={`sala-sublink-btn ${subModuloAtivo === sub ? 'active' : ''}`}
+                          onClick={() => setSubModuloAtivo(sub)}
+                        >
+                          ↳ {sub}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               ))}
             </nav>
 
@@ -160,7 +183,7 @@ export default function SalaPage() {
                   Bem-vindo à <span>Sala de Operações.</span>
                 </h1>
                 <p>
-                  Este é o ambiente onde o desenvolvimento do negócio acontece. Explore, observe e descubra como tudo se conecta.
+                  Ferramentas de tráfego, qualificação e feedback de leads organizadas para eliminar a barreira da prospecção.
                 </p>
               </div>
 
@@ -170,61 +193,73 @@ export default function SalaPage() {
               </div>
             </div>
 
-            {/* Conteúdo Dinâmico Central com base na seleção do Menu */}
+            {/* Conteúdo Central Dinâmico */}
             <div className="sala-center-viewport">
-              {/* Caso o Gestor clique em "Seu SCOUT" */}
-              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && (
+              {/* Se o Gestor estiver em "Seu SCOUT" -> Prospecto Digital */}
+              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
-                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>ÁREA EXCLUSIVA DO GESTOR</span>
-                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Seu Link de Prospecção & Santinho Digital</h3>
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · FILTRAGEM</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    Partilhe o seu link personalizado abaixo. Os novos leads ficarão vinculados diretamente à sua operação.
+                    Gere a sua lista de prospectos com base nos filtros inteligentes definidos para a sua operação de comunidade.
                   </p>
-                  
-                  <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                    <input
-                      type="text"
-                      readOnly
-                      value={linkSantinho}
-                      style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '12px 16px', borderRadius: '10px', color: '#00ff88', fontSize: '12px' }}
-                    />
-                    <button
-                      onClick={() => navigator.clipboard.writeText(linkSantinho)}
-                      style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '12px 22px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
-                    >
-                      Copiar Link
-                    </button>
+                  <div style={{ padding: '20px', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid rgba(0,255,136,0.2)' }}>
+                    <p style={{ fontSize: '12px', color: '#00ff88' }}>⚙️ Configuração de Filtros de Perfil de Lead em carregamento...</p>
                   </div>
+                </div>
+              )}
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px', background: 'rgba(0,0,0,0.3)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <img
-                      src="/assets/santinho-digital.png"
-                      alt="Santinho Digital"
-                      style={{ width: '80px', borderRadius: '8px', border: '1px solid rgba(0,255,136,0.2)' }}
-                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                    />
+              {/* Se o Gestor estiver em "Seu SCOUT" -> Santinho Digital */}
+              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Santinho Digital' && (
+                <div className="sala-dynamic-card">
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · CHAMADA DE ATENÇÃO</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Santinho Digital (Vídeo de 10s)</h3>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
+                    Este vídeo possui a sua **assinatura digital** embutida. Ao enviar para os prospectos, o CTA direciona para o seu link exclusivo do SCOUT, garantindo rastreio total no Supabase.
+                  </p>
+
+                  {/* Preview do Vídeo / Link */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(0,255,136,0.2)' }}>
+                    <div style={{ background: '#000', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', textAlign: 'center', padding: '10px' }}>
+                      <span style={{ fontSize: '10px', color: '#00ff88', display: 'block', marginBottom: '6px' }}>VÍDEO 10s (EXEMPLO)</span>
+                      <video src="/assets/santinho.mp4" controls style={{ width: '100%', borderRadius: '6px' }} />
+                    </div>
                     <div>
-                      <strong style={{ fontSize: '13px', color: '#fff' }}>Peça de Atração Ativa</strong>
-                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', marginTop: '4px' }}>
-                        O Santinho Digital está integrado para captar leads qualificados com rastreio automático de gestor.
-                      </p>
+                      <strong style={{ fontSize: '13px', color: '#fff' }}>Link de Destino do CTA:</strong>
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                        <input
+                          type="text"
+                          readOnly
+                          value={linkScoutGestor}
+                          style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '8px 12px', borderRadius: '8px', color: '#00ff88', fontSize: '11px' }}
+                        />
+                        <button
+                          onClick={() => navigator.clipboard.writeText(linkScoutGestor)}
+                          style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}
+                        >
+                          Copiar Link
+                        </button>
+                      </div>
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', display: 'block', marginTop: '6px' }}>
+                        ID do Gestor Vinculado: <code style={{ color: '#00ff88' }}>{gestor?.slug}</code>
+                      </span>
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Caso o Gestor clique em outros módulos ativos */}
+              {/* Se o Gestor abrir outro módulo geral */}
               {gestorDesbloqueado && moduloAtivo && moduloAtivo !== 'Seu SCOUT' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>MÓDULO OPERACIONAL</span>
                   <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>{moduloAtivo}</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginTop: '10px' }}>
-                    Este ambiente está configurado e pronto para receber os conteúdos e diretrizes da liderança CRC.
+                    Ambiente dedicado à gestão de comunidade e diretrizes estratégicas.
                   </p>
                 </div>
               )}
 
-              {/* Visual Padrão (Nenhum módulo aberto no centro): Gráfico Vetorial 3D/Neon de Comunidade */}
+              {/* Visual Padrão (Nenhum módulo aberto): Vetor 3D / Neon de Comunidade */}
               {(!gestorDesbloqueado || !moduloAtivo) && (
                 <div className="sala-hero-art-container">
                   <div className="sala-art-text">
@@ -233,7 +268,6 @@ export default function SalaPage() {
                     <p>O ecossistema CRC integra tecnologia de ponta, renda recorrente e desenvolvimento colaborativo.</p>
                   </div>
 
-                  {/* Vetor 3D / Neon Estilizado de Comunidade */}
                   <svg className="sala-neon-network" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <defs>
                       <linearGradient id="neonGrad" x1="0" y1="0" x2="400" y2="240" gradientUnits="userSpaceOnUse">
@@ -246,9 +280,7 @@ export default function SalaPage() {
                       </radialGradient>
                     </defs>
                     <circle cx="200" cy="120" r="110" fill="url(#glowNode)" />
-                    {/* Linhas de conexão */}
                     <path d="M200 120L110 70M200 120L290 70M200 120L150 190M200 120L250 190M110 70L60 120M290 70L340 120M150 190L80 170M250 190L320 170" stroke="url(#neonGrad)" strokeWidth="1.5" strokeOpacity="0.6" />
-                    {/* Nós da rede */}
                     <circle cx="200" cy="120" r="12" fill="#00ff88" fillOpacity="0.2" stroke="#00ff88" strokeWidth="2" />
                     <circle cx="200" cy="120" r="4" fill="#00ff88" />
                     <circle cx="110" cy="70" r="8" fill="#2bd9ff" fillOpacity="0.2" stroke="#2bd9ff" strokeWidth="1.5" />
@@ -378,7 +410,7 @@ export default function SalaPage() {
         }
         .sala-layout {
           display: grid;
-          grid-template-columns: 250px minmax(0, 1fr);
+          grid-template-columns: 260px minmax(0, 1fr);
           min-height: calc(100vh - 112px);
         }
         .sala-sidebar {
@@ -398,8 +430,12 @@ export default function SalaPage() {
         .sala-menu {
           display: flex;
           flex-direction: column;
-          gap: 2px;
+          gap: 4px;
           padding: 0 10px;
+        }
+        .sala-menu-group {
+          display: flex;
+          flex-direction: column;
         }
         .sala-menu-item {
           display: grid;
@@ -414,11 +450,34 @@ export default function SalaPage() {
           border: 1px solid transparent;
           border-radius: 12px;
           cursor: pointer;
-          transition: border-color 0.2s ease, background 0.2s ease;
+          transition: all 0.2s ease;
         }
         .sala-menu-item:hover, .sala-menu-item.active {
           border-color: rgba(0, 255, 136, 0.25);
           background: rgba(0, 255, 136, 0.06);
+        }
+        .sala-sublinks {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding-left: 36px;
+          padding-top: 4px;
+          padding-bottom: 6px;
+        }
+        .sala-sublink-btn {
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.5);
+          text-align: left;
+          font-size: 11px;
+          padding: 6px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .sala-sublink-btn:hover, .sala-sublink-btn.active {
+          color: #00ff88;
+          background: rgba(0, 255, 136, 0.04);
         }
         .sala-menu-icon {
           display: flex;
