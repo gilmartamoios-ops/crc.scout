@@ -44,6 +44,7 @@ export default function SalaPage() {
     id: string;
     nome: string;
     whatsapp: string;
+    email?: string;
     slug: string | null;
   } | null>(null);
 
@@ -54,7 +55,7 @@ export default function SalaPage() {
     }
     setModuloAtivo(modulo.nome);
     if (modulo.sublinks && modulo.sublinks.length > 0) {
-      setSubModuloAtivo(modulo.sublinks[0]); // Seleciona o primeiro sub-link por padrão
+      setSubModuloAtivo(modulo.sublinks[0]);
     } else {
       setSubModuloAtivo(null);
     }
@@ -81,6 +82,28 @@ export default function SalaPage() {
 
   const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
 
+  // Função para registrar evento ou rastreio estruturado no Supabase caso necessário na sala
+  const registrarAcaoSupabase = async (acao: string) => {
+    if (!gestor) return;
+    await supabase.from('scout_registros').insert({
+      tipo: 'gestor_operacao',
+      gestor_id: gestor.slug || gestor.id,
+      titulo: `Ação na Sala: ${acao}`,
+      descricao: `O gestor ${gestor.nome} acessou o módulo ${acao}`,
+      dados: {
+        lider: {
+          id: gestor.id,
+          nome: gestor.nome,
+          whatsapp: gestor.whatsapp,
+          email: gestor.email || '',
+          slug: gestor.slug,
+        },
+        acao,
+        timestamp: new Date().toISOString(),
+      },
+    });
+  };
+
   return (
     <main className="sala-page">
       <div className="sala-shell">
@@ -95,23 +118,46 @@ export default function SalaPage() {
             </div>
           </div>
 
-          <div className="sala-header-status">
-            {gestor ? (
-              <span>GESTOR · {gestor.nome}</span>
-            ) : (
-              <button
-                type="button"
-                className="sala-chave-btn"
-                onClick={() => {
-                  window.location.href = '/gestor';
-                }}
-              >
-                🔑 Chave do gestor
-              </button>
-            )}
+          {/* Botões de Ação Superior: Retorno ao Hall + Status do Gestor */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = '/';
+              }}
+              style={{
+                background: 'rgba(0, 255, 136, 0.1)',
+                border: '1px solid rgba(0, 255, 136, 0.35)',
+                color: '#00ff88',
+                padding: '7px 14px',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '10px',
+                letterSpacing: '1px',
+              }}
+            >
+              ← VOLTAR AO HALL (CAPA)
+            </button>
 
-            <span className="sala-status-dot" />
-            AMBIENTE CRC
+            <div className="sala-header-status">
+              {gestor ? (
+                <span>GESTOR · {gestor.nome}</span>
+              ) : (
+                <button
+                  type="button"
+                  className="sala-chave-btn"
+                  onClick={() => {
+                    window.location.href = '/gestor';
+                  }}
+                >
+                  🔑 Chave do gestor
+                </button>
+              )}
+
+              <span className="sala-status-dot" />
+              AMBIENTE CRC
+            </div>
           </div>
         </header>
 
@@ -139,7 +185,6 @@ export default function SalaPage() {
                     <span className="sala-lock">{gestorDesbloqueado ? '✦' : '⌕'}</span>
                   </button>
 
-                  {/* Sub-links visíveis apenas para o Gestor quando expandido "Seu SCOUT" */}
                   {gestorDesbloqueado && modulo.sublinks && moduloAtivo === modulo.nome && (
                     <div className="sala-sublinks">
                       {modulo.sublinks.map((sub) => (
@@ -147,7 +192,10 @@ export default function SalaPage() {
                           key={sub}
                           type="button"
                           className={`sala-sublink-btn ${subModuloAtivo === sub ? 'active' : ''}`}
-                          onClick={() => setSubModuloAtivo(sub)}
+                          onClick={() => {
+                            setSubModuloAtivo(sub);
+                            registrarAcaoSupabase(sub);
+                          }}
                         >
                           ↳ {sub}
                         </button>
@@ -163,7 +211,7 @@ export default function SalaPage() {
                 <>
                   <span className="sala-visitor-tag">GESTOR DE COMUNIDADE</span>
                   <strong className="sala-gestor-name">{gestor.nome}</strong>
-                  <p>Você está na sua Sala de Operações.</p>
+                  <p>Você está na sua Sala de Operações com rastreio ativo no Supabase.</p>
                 </>
               ) : (
                 <>
@@ -195,7 +243,6 @@ export default function SalaPage() {
 
             {/* Conteúdo Central Dinâmico */}
             <div className="sala-center-viewport">
-              {/* Se o Gestor estiver em "Seu SCOUT" -> Prospecto Digital */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · FILTRAGEM</span>
@@ -209,16 +256,14 @@ export default function SalaPage() {
                 </div>
               )}
 
-              {/* Se o Gestor estiver em "Seu SCOUT" -> Santinho Digital */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Santinho Digital' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · CHAMADA DE ATENÇÃO</span>
                   <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Santinho Digital (Vídeo de 10s)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
-                    Este vídeo possui a sua **assinatura digital** embutida. Ao enviar para os prospectos, o CTA direciona para o seu link exclusivo do SCOUT, garantindo rastreio total no Supabase.
+                    Este vídeo possui a sua <strong>assinatura digital</strong> embutida. Ao enviar para os prospectos, o CTA direciona para o seu link exclusivo do SCOUT, garantindo rastreio total no Supabase.
                   </p>
 
-                  {/* Preview do Vídeo / Link */}
                   <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(0,255,136,0.2)' }}>
                     <div style={{ background: '#000', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', textAlign: 'center', padding: '10px' }}>
                       <span style={{ fontSize: '10px', color: '#00ff88', display: 'block', marginBottom: '6px' }}>VÍDEO 10s (EXEMPLO)</span>
@@ -248,7 +293,6 @@ export default function SalaPage() {
                 </div>
               )}
 
-              {/* Se o Gestor abrir outro módulo geral */}
               {gestorDesbloqueado && moduloAtivo && moduloAtivo !== 'Seu SCOUT' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>MÓDULO OPERACIONAL</span>
@@ -259,7 +303,6 @@ export default function SalaPage() {
                 </div>
               )}
 
-              {/* Visual Padrão (Nenhum módulo aberto): Vetor 3D / Neon de Comunidade */}
               {(!gestorDesbloqueado || !moduloAtivo) && (
                 <div className="sala-hero-art-container">
                   <div className="sala-art-text">
@@ -302,7 +345,6 @@ export default function SalaPage() {
         </footer>
       </div>
 
-      {/* Modal de Validação / X1 para Leads */}
       {moduloRestrito && (
         <div className="sala-modal-backdrop" onClick={() => setModuloRestrito(null)}>
           <div className="sala-modal" onClick={(event) => event.stopPropagation()}>
