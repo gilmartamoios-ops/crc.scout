@@ -15,6 +15,7 @@ interface Respostas {
 
 export default function LandingPage() {
   const [etapa, setEtapa] = useState(1);
+  const [isMuted, setIsMuted] = useState(true);
 
   const [respostas, setRespostas] = useState<Respostas>({
     objetivo: '',
@@ -34,6 +35,7 @@ export default function LandingPage() {
   const [gestorId, setGestorId] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const santinhoVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const perguntas = useMemo(
     () => [
@@ -69,8 +71,7 @@ export default function LandingPage() {
       },
       {
         id: 'experiencia' as const,
-        titulo:
-          'Como você se considera em relação a relacionamento e gestão de pessoas?',
+        titulo: 'Como você se considera em relação a relacionamento e gestão de pessoas?',
         opcoes: [
           'Tenho facilidade para me relacionar',
           'Já lidero ou coordeno pessoas',
@@ -99,6 +100,13 @@ export default function LandingPage() {
       setEtapa(3);
     }
   }, []);
+
+  const toggleAudio = () => {
+    if (santinhoVideoRef.current) {
+      santinhoVideoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   const selecionarResposta = (valor: string) => {
     if (!perguntaAtual) return;
@@ -239,7 +247,7 @@ export default function LandingPage() {
           </div>
         </header>
 
-        {/* ETAPA 1: CAPA COM O VÍDEO PROTAGONISTA (SANTINHO DIGITAL) */}
+        {/* ETAPA 1: CAPA COM O VÍDEO PROTAGONISTA (SANTINHO DIGITAL) E BOTÃO DE SOM */}
         {etapa === 1 && (
           <section className="scout-hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 10px 20px 10px' }}>
             <div style={{ maxWidth: '340px', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
@@ -248,18 +256,44 @@ export default function LandingPage() {
                 SANTINHO DIGITAL · RISCO ZERO
               </span>
 
-              {/* Player do Vídeo Protagonista (Formato Vertical Stories) */}
-              <div style={{ width: '100%', aspectRatio: '9/16', maxHeight: '430px', background: '#000', borderRadius: '18px', overflow: 'hidden', border: '2px solid rgba(0,255,136,0.5)', boxShadow: '0 0 35px rgba(0,255,136,0.25)' }}>
+              {/* Player do Vídeo Protagonista com Botão de Som Flutuante */}
+              <div style={{ width: '100%', aspectRatio: '9/16', maxHeight: '420px', background: '#000', borderRadius: '18px', overflow: 'hidden', border: '2px solid rgba(0,255,136,0.5)', boxShadow: '0 0 35px rgba(0,255,136,0.25)', position: 'relative' }}>
                 <video
+                  ref={santinhoVideoRef}
                   src="/assets/santinho.mp4"
                   autoPlay
                   loop
-                  muted
+                  muted={isMuted}
                   playsInline
-                  controls
                   preload="auto"
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
+                
+                {/* Botão para ativar/desativar o som */}
+                <button
+                  type="button"
+                  onClick={toggleAudio}
+                  style={{
+                    position: 'absolute',
+                    bottom: '12px',
+                    right: '12px',
+                    background: 'rgba(0, 0, 0, 0.75)',
+                    color: '#00ff88',
+                    border: '1px solid rgba(0, 255, 136, 0.4)',
+                    padding: '8px 12px',
+                    borderRadius: '20px',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 10
+                  }}
+                >
+                  {isMuted ? '🔇 LIGAR SOM' : '🔊 COM SOM'}
+                </button>
               </div>
 
               {/* CTA Colado no Vídeo */}
@@ -284,7 +318,7 @@ export default function LandingPage() {
               <div className="scout-eyebrow">AGORA VOCÊ PODE CONHECER</div>
               <h2 className="scout-section-title">O conceito por trás do CRC.</h2>
               <p className="scout-section-text">
-                Antes das perguntas, veja a ideia que sustenta essa proposta. Depois você decide se quer continuar.
+                Antes das perguntas, veja a ideia que sustenta essa proposta. Depois você decidesse quer continuar.
               </p>
             </div>
 
@@ -294,7 +328,6 @@ export default function LandingPage() {
                   ref={videoRef}
                   controls
                   autoPlay
-                  muted
                   playsInline
                   preload="auto"
                   className="scout-video"
