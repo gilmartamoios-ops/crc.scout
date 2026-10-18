@@ -127,9 +127,14 @@ export default function LandingPage() {
     const registro = {
       gestor_id: gestorId,
       tipo: 'convidado',
-      titulo: 'Jornada SCOUT concluída',
-      descricao: 'Convidado concluiu o quiz e entrou na Sala de Estar',
+      titulo: 'Jornada SCOUT concluída (Quiz)',
+      descricao: 'Convidado concluiu o quiz e entrou na Sala de Operações',
       dados: {
+        convidado: {
+          nome: nome.trim() || 'Não informado',
+          whatsapp: whatsapp.trim() || 'Não informado',
+          email: '',
+        },
         perfil: '',
         respostas: {
           ...respostas,
@@ -247,7 +252,6 @@ export default function LandingPage() {
           </div>
         </header>
 
-        {/* ETAPA 1: CAPA COM O VÍDEO PROTAGONISTA (SANTINHO DIGITAL) E BOTÃO DE SOM */}
         {etapa === 1 && (
           <section className="scout-hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 10px 20px 10px' }}>
             <div style={{ maxWidth: '340px', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
@@ -256,7 +260,6 @@ export default function LandingPage() {
                 SANTINHO DIGITAL · RISCO ZERO
               </span>
 
-              {/* Player do Vídeo Protagonista com Botão de Som Flutuante */}
               <div style={{ width: '100%', aspectRatio: '9/16', maxHeight: '420px', background: '#000', borderRadius: '18px', overflow: 'hidden', border: '2px solid rgba(0,255,136,0.5)', boxShadow: '0 0 35px rgba(0,255,136,0.25)', position: 'relative' }}>
                 <video
                   ref={santinhoVideoRef}
@@ -269,7 +272,6 @@ export default function LandingPage() {
                   style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
                 
-                {/* Botão para ativar/desativar o som */}
                 <button
                   type="button"
                   onClick={toggleAudio}
@@ -296,7 +298,6 @@ export default function LandingPage() {
                 </button>
               </div>
 
-              {/* CTA Colado no Vídeo */}
               <button
                 type="button"
                 onClick={() => setEtapa(2)}
@@ -318,7 +319,7 @@ export default function LandingPage() {
               <div className="scout-eyebrow">AGORA VOCÊ PODE CONHECER</div>
               <h2 className="scout-section-title">O conceito por trás do CRC.</h2>
               <p className="scout-section-text">
-                Antes das perguntas, veja a ideia que sustenta essa proposta. Depois você decidesse quer continuar.
+                Antes das perguntas, veja a ideia que sustenta essa proposta. Depois você decide se quer continuar.
               </p>
             </div>
 
