@@ -55,7 +55,6 @@ const modulos: Modulo[] = [
   },
 ];
 
-// Matriz Geográfica dos Estados Brasileiros
 const estadosBrasil = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
   'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
@@ -76,9 +75,11 @@ export default function SalaPage() {
     slug: string | null;
   } | null>(null);
 
-  // Estados do Link 1 (Prospecto Digital)
+  // Estados do Prospecto Digital (IBGE)
   const [estadoSelecionado, setEstadoSelecionado] = useState<string>('RJ');
-  const [cidadeDigito, setCidadeDigito] = useState<string>('Cabo Frio');
+  const [municipiosDoEstado, setMunicipiosDoEstado] = useState<string[]>([]);
+  const [municipioSelecionado, setMunicipioSelecionado] = useState<string>('Cabo Frio');
+  const [carregandoCidades, setCarregandoCidades] = useState<boolean>(false);
   const [nichoPfSelecionado, setNichoPfSelecionado] = useState<'transicao' | 'liberais' | 'consumo'>('transicao');
 
   // Estados do Feedback de Prospectos Reais (Supabase)
@@ -119,6 +120,28 @@ export default function SalaPage() {
 
     verificarSessao();
   }, []);
+
+  // Consome a API do IBGE para carregar 100% dos municípios reais do Estado selecionado
+  useEffect(() => {
+    async function carregarMunicipiosIBGE() {
+      setCarregandoCidades(true);
+      try {
+        const resposta = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSelecionado}/municipios`);
+        const dados = await resposta.json();
+        const nomesCidades = dados.map((cidade: { nome: string }) => cidade.nome).sort();
+        setMunicipiosDoEstado(nomesCidades);
+        if (nomesCidades.length > 0) {
+          setMunicipioSelecionado(nomesCidades[0]);
+        }
+      } catch (erro) {
+        console.error('Erro ao buscar municípios do IBGE:', erro);
+      } finally {
+        setCarregandoCidades(false);
+      }
+    }
+
+    carregarMunicipiosIBGE();
+  }, [estadoSelecionado]);
 
   const carregarLeadsScout = async () => {
     setCarregandoLeads(true);
@@ -330,19 +353,19 @@ export default function SalaPage() {
 
             <div className="sala-center-viewport">
               
-              {/* SUBLINK 1: PROSPECTO DIGITAL (MOTOR DE ATRAÇÃO REGIONAL) */}
+              {/* SUBLINK 1: PROSPECTO DIGITAL (MOTOR COM IBGE) */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
-                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1 (DIRECIONAMENTO REGIONAL)</span>
-                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Direcionamento de Campo)</h3>
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · MOTOR REGIONAL (BASE IBGE OFICIAL)</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Garimpo de Território)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    Selecione o Estado e o Município de atuação para direcionar sua atração de convidados aos 3 pilares estratégicos da comunidade.
+                    Selecione qualquer Estado do Brasil para carregar <strong>todos os municípios reais oficiais</strong> e direcionar sua atração de campo.
                   </p>
 
                   <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '14px', alignItems: 'center', marginBottom: '18px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>📍 UF / ESTADO:</label>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>📍 ESTADO (UF):</label>
                         <select
                           value={estadoSelecionado}
                           onChange={(e) => setEstadoSelecionado(e.target.value)}
@@ -355,56 +378,68 @@ export default function SalaPage() {
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>🏙️ MUNICÍPIO / REGIÃO DE ATUAÇÃO:</label>
-                        <input
-                          type="text"
-                          value={cidadeDigito}
-                          onChange={(e) => setCidadeDigito(e.target.value)}
-                          placeholder="Digite o município (Ex: Cabo Frio, Niterói, Campinas...)"
-                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}
-                        />
+                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
+                          🏙️ MUNICÍPIO ({carregandoCidades ? 'Carregando IBGE...' : `${municipiosDoEstado.length} cidades`}):
+                        </label>
+                        <select
+                          value={municipioSelecionado}
+                          onChange={(e) => setMunicipioSelecionado(e.target.value)}
+                          disabled={carregandoCidades}
+                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+                        >
+                          {municipiosDoEstado.map((cidade) => (
+                            <option key={cidade} value={cidade}>{cidade}</option>
+                          ))}
+                        </select>
                       </div>
                     </div>
 
                     <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', fontWeight: 'bold', marginBottom: '10px' }}>
-                      SELEÇÃO DE PILAR DE ATRAÇÃO PARA {cidadeDigito.toUpperCase()} - {estadoSelecionado}:
+                      PILAR DE ATRAÇÃO SELECIONADO PARA {municipioSelecionado?.toUpperCase()} - {estadoSelecionado}:
                     </label>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginBottom: '18px' }}>
                       <button
                         type="button"
                         onClick={() => setNichoPfSelecionado('transicao')}
-                        style={{ padding: '14px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : '#fff', border: nichoPfSelecionado === 'transicao' ? '1px solid #00ff88' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+                        style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : '#fff', border: nichoPfSelecionado === 'transicao' ? '1px solid #00ff88' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
                       >
-                        <strong style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>💼 Transição Profissional</strong>
-                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>Para pessoas em busca de autonomia de carreira e novos horizontes.</span>
+                        <strong style={{ display: 'block', fontSize: '12px' }}>💼 Transição Profissional</strong>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setNichoPfSelecionado('liberais')}
-                        style={{ padding: '14px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : '#fff', border: nichoPfSelecionado === 'liberais' ? '1px solid #2bd9ff' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+                        style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : '#fff', border: nichoPfSelecionado === 'liberais' ? '1px solid #2bd9ff' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
                       >
-                        <strong style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>🩺 Saúde & Ozonioterapia</strong>
-                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>Para profissionais liberais e interessados em saúde integrativa.</span>
+                        <strong style={{ display: 'block', fontSize: '12px' }}>🩺 Saúde & Ozonioterapia</strong>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => setNichoPfSelecionado('consumo')}
-                        style={{ padding: '14px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : '#fff', border: nichoPfSelecionado === 'consumo' ? '1px solid #ffd700' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+                        style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : '#fff', border: nichoPfSelecionado === 'consumo' ? '1px solid #ffd700' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
                       >
-                        <strong style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>🛒 Consumo Consciente</strong>
-                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>Para famílias focadas em economia doméstica e compra inteligente.</span>
+                        <strong style={{ display: 'block', fontSize: '12px' }}>🛒 Consumo Consciente</strong>
                       </button>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        alert(`⚡ Garimpo ativado para ${municipioSelecionado} - ${estadoSelecionado}! O link de atração regional está pronto.`);
+                      }}
+                      style={{ width: '100%', background: '#00ff88', color: '#050505', border: 'none', padding: '14px', borderRadius: '10px', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer' }}
+                    >
+                      ⚡ Executar Garimpo Regional ({municipioSelecionado} - {estadoSelecionado})
+                    </button>
                   </div>
 
                   <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                     <div>
-                      <span style={{ fontSize: '10px', color: '#00ff88', fontWeight: 'bold' }}>SEU LINK ATIVO COM ATRIBUIÇÃO AUTOMÁTICA</span>
+                      <span style={{ fontSize: '10px', color: '#00ff88', fontWeight: 'bold' }}>LINK DE ATRAÇÃO DO TERRITÓRIO</span>
                       <strong style={{ display: 'block', color: '#fff', fontSize: '13px', marginTop: '4px' }}>
-                        Atração Direcionada: {cidadeDigito} - {estadoSelecionado}
+                        {municipioSelecionado} - {estadoSelecionado}
                       </strong>
                     </div>
 
@@ -412,7 +447,7 @@ export default function SalaPage() {
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(linkBaseGestor);
-                          alert(`📋 Link do Quiz para ${cidadeDigito}-${estadoSelecionado} copiado!`);
+                          alert(`📋 Link copiado para ${municipioSelecionado}-${estadoSelecionado}!`);
                         }}
                         style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '10px 14px', borderRadius: '10px', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
                       >
@@ -420,7 +455,7 @@ export default function SalaPage() {
                       </button>
 
                       <a
-                        href={`https://wa.me/?text=${encodeURIComponent(`Olá! Gostaria de convidar você de ${cidadeDigito} a responder ao nosso Quiz e conhecer a comunidade CRC:${linkBaseGestor}`)}`}
+                        href={`https://wa.me/?text=${encodeURIComponent(`Olá! Conheça a comunidade CRC em ${municipioSelecionado}-${estadoSelecionado}:${linkBaseGestor}`)}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         style={{ background: '#00ff88', color: '#050505', padding: '10px 16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '11px', textDecoration: 'none' }}
@@ -1121,7 +1156,6 @@ export default function SalaPage() {
         }
       `}</style>
 
-      {/* ESTILO DE IMPRESSÃO LIMPO PARA FOLHA A4 */}
       <style jsx global>{`
         @media print {
           body {
