@@ -314,20 +314,21 @@ export default function LandingPage() {
           </section>
         )}
 
-        {/* ETAPA 2: MINI APN (OTIMIZADO PARA CELULAR) */}
+        {/* ETAPA 2: MINI APN (CORRIGIDO PARA CABER NA TELA MOBILE) */}
         {etapa === 2 && (
-          <section className="scout-content" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div className="scout-section-intro" style={{ textAlign: 'center' }}>
-              <div className="scout-eyebrow" style={{ color: '#00ff88', fontSize: '10px', letterSpacing: '1.5px' }}>
+          <section className="scout-content" style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'calc(100vh - 80px)', justifyContent: 'space-between' }}>
+            <div className="scout-section-intro" style={{ textAlign: 'center', marginBottom: '0' }}>
+              <div className="scout-eyebrow" style={{ color: '#00ff88', fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase' }}>
                 AGORA VOCÊ PODE CONHECER
               </div>
-              <h2 className="scout-section-title" style={{ fontSize: '18px', margin: '4px 0' }}>
+              <h2 className="scout-section-title" style={{ fontSize: '18px', margin: '2px 0 6px', lineHeight: '1.2' }}>
                 O conceito por trás do CRC.
               </h2>
             </div>
 
-            <div className="scout-video-card" style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
-              <div className="scout-video-frame" style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', background: '#000' }}>
+            {/* Contêiner do vídeo otimizado */}
+            <div className="scout-video-card" style={{ width: '100%', maxWidth: '320px', margin: '0 auto', flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <div className="scout-video-frame" style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', background: '#000', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <video
                   ref={videoRef}
                   controls
@@ -337,19 +338,20 @@ export default function LandingPage() {
                   className="scout-video"
                   src="/assets/miniAPN.mp4"
                   onEnded={handleVideoEnded}
-                  style={{ width: '100%', maxHeight: '42vh', objectFit: 'contain', display: 'block' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} // object-fit: cover resolve o subdimensionamento
                 >
                   Seu navegador não suporta a reprodução deste vídeo.
                 </video>
               </div>
             </div>
 
-            {/* BOTÕES PADRONIZADOS COM ALTO DESTAQUE */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '420px', margin: '0 auto' }}>
+            {/* ÁREA DE BOTÕES COMPACTADA */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '320px', margin: '0 auto', paddingTop: '8px' }}>
               <button 
                 type="button" 
                 className="btn-destaque-neon"
                 onClick={() => setEtapa(2.5)}
+                style={{ padding: '14px' }} // Botão ligeiramente mais compacto
               >
                 QUERO EXPERIMENTAR ➔
               </button>
@@ -358,6 +360,7 @@ export default function LandingPage() {
                 type="button" 
                 className="btn-voltar-sutil"
                 onClick={() => setEtapa(1)}
+                style={{ padding: '10px' }} // Botão ligeiramente mais compacto
               >
                 ← Voltar
               </button>
