@@ -25,7 +25,8 @@ interface ConvidadoRegistro {
     };
     perfil?: string;
     respostas?: Record<string, string>;
-    status_aprovacao?: 'pendente' | 'aprovado' | 'acompanhamento' | 'desqualificado';
+    status_aprovacao?: 'pendente' | 'acompanhamento' | 'solicitado_master' | 'codigo_liberado' | 'desqualificado';
+    codigo_master?: string;
     origem?: string;
   };
 }
@@ -54,7 +55,6 @@ const modulos: Modulo[] = [
   },
 ];
 
-// Dados geográficos oficiais para os Dropdowns
 const municipiosPorEstado: Record<string, string[]> = {
   RJ: ['Cabo Frio', 'Arraial do Cabo', 'Búzios', 'Niterói', 'Rio de Janeiro', 'Campos dos Goytacazes', 'Petrópolis', 'Macaé'],
   SP: ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'São José dos Campos'],
@@ -82,7 +82,6 @@ export default function SalaPage() {
   const [nichoPfSelecionado, setNichoPfSelecionado] = useState<'transicao' | 'liberais' | 'consumo'>('transicao');
   const [minerando, setMinerando] = useState(false);
   
-  // Controle da Trava Antitravamento
   const [lotesGeradosHoje, setLotesGeradosHoje] = useState<number>(1);
   const [leadsMinerados, setLeadsMinerados] = useState<Array<{nome: string; perfil: string; regiao: string; whats: string}>>([
     { nome: 'Marcos Vinícius', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: 'Cabo Frio - RJ', whats: '22997788554' },
@@ -90,21 +89,6 @@ export default function SalaPage() {
     { nome: 'Cláudia Ribeiro', perfil: 'Consumo Inteligente & Comunidade', regiao: 'Cabo Frio - RJ', whats: '22996655443' },
     { nome: 'Roberto Carlos', perfil: 'Open to Work (LinkedIn / Logística)', regiao: 'Cabo Frio - RJ', whats: '22991122334' },
     { nome: 'Vanessa Lima', perfil: 'Transição de Carreira (Comercial)', regiao: 'Cabo Frio - RJ', whats: '22995544332' },
-    { nome: 'Bruno Alencar', perfil: 'Profissional Autônomo / Educação Física', regiao: 'Cabo Frio - RJ', whats: '22988776655' },
-    { nome: 'Camila Duarte', perfil: 'Busca de Renda Extra / Famílias', regiao: 'Cabo Frio - RJ', whats: '22993322110' },
-    { nome: 'Diego Martins', perfil: 'Open to Work (LinkedIn / TI)', regiao: 'Cabo Frio - RJ', whats: '22994455667' },
-    { nome: 'Fernanda Souza', perfil: 'Profissional Liberal / Estética', regiao: 'Cabo Frio - RJ', whats: '22988223344' },
-    { nome: 'Lucas Peixoto', perfil: 'Transição de Carreira (Financeiro)', regiao: 'Cabo Frio - RJ', whats: '22999887766' },
-    { nome: 'Mariana Costa', perfil: 'Consumo Consciente & Sustentabilidade', regiao: 'Cabo Frio - RJ', whats: '22991234567' },
-    { nome: 'Rodrigo Pires', perfil: 'Open to Work (LinkedIn / Vendas)', regiao: 'Cabo Frio - RJ', whats: '22988665544' },
-    { nome: 'Juliana Mendes', perfil: 'Profissional Liberal / Terapias', regiao: 'Cabo Frio - RJ', whats: '22997766554' },
-    { nome: 'Thiago Silva', perfil: 'Transição de Carreira (Operações)', regiao: 'Cabo Frio - RJ', whats: '22993344556' },
-    { nome: 'Patrícia Ramos', perfil: 'Busca de Renda Recorrente', regiao: 'Cabo Frio - RJ', whats: '22992211443' },
-    { nome: 'Alexandre Magno', perfil: 'Open to Work (LinkedIn / Gestão)', regiao: 'Cabo Frio - RJ', whats: '22995566778' },
-    { nome: 'Renata Castro', perfil: 'Profissional Liberal / Nutrição', regiao: 'Cabo Frio - RJ', whats: '22988443322' },
-    { nome: 'Eduardo Lima', perfil: 'Transição de Carreira (Atendimento)', regiao: 'Cabo Frio - RJ', whats: '22991144778' },
-    { nome: 'Sabrina Sato', perfil: 'Consumo Inteligente & Lar', regiao: 'Cabo Frio - RJ', whats: '22996633221' },
-    { nome: 'Gustavo Henrique', perfil: 'Open to Work (LinkedIn / Projetos)', regiao: 'Cabo Frio - RJ', whats: '22990099887' }
   ]);
 
   // Estados do Feedback de Prospectos
@@ -178,7 +162,7 @@ export default function SalaPage() {
     }
   }, [gestorDesbloqueado, moduloAtivo, subModuloAtivo]);
 
-  const atualizarStatusLead = async (id: string, novoStatus: 'aprovado' | 'acompanhamento' | 'desqualificado') => {
+  const atualizarStatusLead = async (id: string, novoStatus: 'pendente' | 'acompanhamento' | 'solicitado_master' | 'codigo_liberado' | 'desqualificado') => {
     const leadAlvo = leads.find((l) => l.id === id);
     if (!leadAlvo) return;
 
@@ -207,7 +191,7 @@ export default function SalaPage() {
 
   const executarMineracaoPorNicho = (nicho: 'transicao' | 'liberais' | 'consumo') => {
     if (lotesGeradosHoje >= 3) {
-      alert('🔒 Trava de Segurança da Lei das Médias: Você atingiu o limite de 3 lotes diários gerados. Conclua os atendimentos em andamento na sua Fila Ativa antes de extrair novos lotes para evitar sobrecarga.');
+      alert('🔒 Trava de Segurança da Lei das Médias: Você atingiu o limite de 3 lotes diários gerados.');
       return;
     }
 
@@ -216,78 +200,11 @@ export default function SalaPage() {
 
     setTimeout(() => {
       const regiaoStr = `${municipioSelecionado} - ${estadoSelecionado}`;
-      let baseGerada: Array<{nome: string; perfil: string; regiao: string; whats: string}> = [];
-
-      if (nicho === 'transicao') {
-        baseGerada = [
-          { nome: 'Carlos Eduardo', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: regiaoStr, whats: '22998877111' },
-          { nome: 'Beatriz Lima', perfil: 'Open to Work (LinkedIn / RH)', regiao: regiaoStr, whats: '22988772222' },
-          { nome: 'Marcelo Santos', perfil: 'Transição de Carreira (Comercial)', regiao: regiaoStr, whats: '22996655333' },
-          { nome: 'Ana Paula', perfil: 'Open to Work (LinkedIn / Finanças)', regiao: regiaoStr, whats: '22995544444' },
-          { nome: 'Lucas Gabriel', perfil: 'Transição de Carreira (Logística)', regiao: regiaoStr, whats: '22994433555' },
-          { nome: 'Larissa Manoela', perfil: 'Open to Work (LinkedIn / Atendimento)', regiao: regiaoStr, whats: '22993322666' },
-          { nome: 'Felipe Neto', perfil: 'Transição de Carreira (Marketing)', regiao: regiaoStr, whats: '22992211777' },
-          { nome: 'Juliana Paes', perfil: 'Open to Work (LinkedIn / Produção)', regiao: regiaoStr, whats: '22991100888' },
-          { nome: 'Renato Aragão', perfil: 'Transição de Carreira (Gestão)', regiao: regiaoStr, whats: '22990099999' },
-          { nome: 'Camila Pitanga', perfil: 'Open to Work (LinkedIn / Projetos)', regiao: regiaoStr, whats: '22989988888' },
-          { nome: 'Wagner Moura', perfil: 'Transição de Carreira (Tecnologia)', regiao: regiaoStr, whats: '22988877777' },
-          { nome: 'Alice Braga', perfil: 'Open to Work (LinkedIn / Vendas)', regiao: regiaoStr, whats: '22987766666' },
-          { nome: 'Rodrigo Santoro', perfil: 'Transição de Carreira (Consultoria)', regiao: regiaoStr, whats: '22986655555' },
-          { nome: 'Sônia Braga', perfil: 'Open to Work (LinkedIn / Operações)', regiao: regiaoStr, whats: '22985544444' },
-          { nome: 'Lázaro Ramos', perfil: 'Transição de Carreira (Supervisão)', regiao: regiaoStr, whats: '22984433333' },
-          { nome: 'Taís Araújo', perfil: 'Open to Work (LinkedIn / Comunicação)', regiao: regiaoStr, whats: '22983322222' },
-          { nome: 'Cauã Reymond', perfil: 'Transição de Carreira (Negócios)', regiao: regiaoStr, whats: '22982211111' },
-          { nome: 'Grazi Massafera', perfil: 'Open to Work (LinkedIn / Relacionamento)', regiao: regiaoStr, whats: '22981100000' },
-          { nome: 'Matheus Nachtergaele', perfil: 'Transição de Carreira (Estratégia)', regiao: regiaoStr, whats: '22980099999' },
-          { nome: 'Marjorie Estiano', perfil: 'Open to Work (LinkedIn / Planejamento)', regiao: regiaoStr, whats: '22979988888' },
-        ];
-      } else if (nicho === 'liberais') {
-        baseGerada = [
-          { nome: 'Dra. Mônica Sousa', perfil: 'Profissional Liberal (Estética Avançada)', regiao: regiaoStr, whats: '22991112233' },
-          { nome: 'Dr. Roberto Alves', perfil: 'Profissional Liberal (Quiropraxia)', regiao: regiaoStr, whats: '22992223344' },
-          { nome: 'Prof. Carla Dias', perfil: 'Educadora Física / Personal Trainer', regiao: regiaoStr, whats: '22993334455' },
-          { nome: 'Nutri. Patrícia Gomes', perfil: 'Profissional Liberal (Nutrição Funcional)', regiao: regiaoStr, whats: '22994445566' },
-          { nome: 'Terapeuta Hugo Leonardo', perfil: 'Terapeuta Holístico & Bem-estar', regiao: regiaoStr, whats: '22995556677' },
-          { nome: 'Enf. Kelly Cristina', perfil: 'Enfermeira Esteta / Ozonioterapia', regiao: regiaoStr, whats: '22996667788' },
-          { nome: 'Dr. Bruno Mars', perfil: 'Fisioterapeuta Desportivo', regiao: regiaoStr, whats: '22997778899' },
-          { nome: 'Psicóloga Amanda Costa', perfil: 'Profissional Liberal (Psicoterapia)', regiao: regiaoStr, whats: '22998889900' },
-          { nome: 'Consultora Vanessa Lopes', perfil: 'Coach de Desenvolvimento Humano', regiao: regiaoStr, whats: '22999900011' },
-          { nome: 'Esteticista Brenda Song', perfil: 'Especialista em Cuidados Faciais', regiao: regiaoStr, whats: '22981112233' },
-          { nome: 'Dr. Arthur Aguiar', perfil: 'Nutricionista Esportivo', regiao: regiaoStr, whats: '22982223344' },
-          { nome: 'Prof. Larissa Manoela', perfil: 'Instrutora de Yoga & Pilatos', regiao: regiaoStr, whats: '22983334455' },
-          { nome: 'Terapeuta Marcela Temer', perfil: 'Acupunturista & Saúde Integrativa', regiao: regiaoStr, whats: '22984445566' },
-          { nome: 'Dr. Fernando Rocha', perfil: 'Médico Integrativo', regiao: regiaoStr, whats: '22985556677' },
-          { nome: 'Massoterapeuta Cátia Paganote', perfil: 'Especialista em Drenagem', regiao: regiaoStr, whats: '22986667788' },
-          { nome: 'Enf. Daniel Rocha', perfil: 'Enfermeiro Cuidador Especializado', regiao: regiaoStr, whats: '22987778899' },
-          { nome: 'Prof. Sabrina Sato', perfil: 'Personal Trainer Online', regiao: regiaoStr, whats: '22988889900' },
-          { nome: 'Nutri. Gisele Bündchen', perfil: 'Consultora de Alimentos Orgânicos', regiao: regiaoStr, whats: '22989990011' },
-          { nome: 'Fisioterapeuta Kaká', perfil: 'Reabilitação Motora', regiao: regiaoStr, whats: '22980001122' },
-          { nome: 'Psicólogo Neymar Jr', perfil: 'Desenvolvimento Mental e Alta Performance', regiao: regiaoStr, whats: '22979992233' },
-        ];
-      } else {
-        baseGerada = [
-          { nome: 'Família Mendonça', perfil: 'Consumo Consciente & Economia Doméstica', regiao: regiaoStr, whats: '22991002003' },
-          { nome: 'Casal Alvarenga', perfil: 'Busca de Renda Recorrente para o Lar', regiao: regiaoStr, whats: '22992003004' },
-          { nome: 'Dona Maria de Lourdes', perfil: 'Consumidora Focada em Longevidade', regiao: regiaoStr, whats: '22993004005' },
-          { nome: 'Senhor João Pedro', perfil: 'Comunidade de Consumo Inteligente', regiao: regiaoStr, whats: '22994005006' },
-          { nome: 'Tatiane e Márcio', perfil: 'Redução de Custos com Produtos de Limpeza', regiao: regiaoStr, whats: '22995006007' },
-          { nome: 'Família Silveira', perfil: 'Alimentação Saudável & Bem-estar', regiao: regiaoStr, whats: '22996007008' },
-          { nome: 'Casal Belchior', perfil: 'Gestão Financeira Familiar', regiao: regiaoStr, whats: '22997008009' },
-          { nome: 'Dona Cida', perfil: 'Consumo Colaborativo de Bairro', regiao: regiaoStr, whats: '22998009010' },
-          { nome: 'Família Albuquerque', perfil: 'Qualidade de Vida e Prevenção', regiao: regiaoStr, whats: '22999010011' },
-          { nome: 'Casal Xavier', perfil: 'Economia Doméstica Inteligente', regiao: regiaoStr, whats: '22981011012' },
-          { nome: 'Dona Neusa', perfil: 'Mãe de Família Focada em Saúde', regiao: regiaoStr, whats: '22982012013' },
-          { nome: 'Família Goulart', perfil: 'Consumo Sustentável', regiao: regiaoStr, whats: '22983013014' },
-          { nome: 'Casal Buarque', perfil: 'Empreendedorismo em Família', regiao: regiaoStr, whats: '22984014015' },
-          { nome: 'Dona Zuleide', perfil: 'Rede de Consumo Solidário', regiao: regiaoStr, whats: '22985015016' },
-          { nome: 'Família Caymmi', perfil: 'Bem-estar e Longevidade em Casa', regiao: regiaoStr, whats: '22986016017' },
-          { nome: 'Casal Jobim', perfil: 'Descontos em Produtos de Consumo Diário', regiao: regiaoStr, whats: '22987017018' },
-          { nome: 'Dona Ivone', perfil: 'Comunidade Ativa de Consumidores', regiao: regiaoStr, whats: '22988018019' },
-          { nome: 'Família Veloso', perfil: 'Troca de Hábitos de Consumo', regiao: regiaoStr, whats: '22989019020' },
-          { nome: 'Casal Gil', perfil: 'Qualidade de Vida e Economia', regiao: regiaoStr, whats: '22980020021' },
-          { nome: 'Dona Elis', perfil: 'Membro Fundador de Comunidade Local', regiao: regiaoStr, whats: '22979021022' },
-        ];
-      }
+      const baseGerada = [
+        { nome: 'Carlos Eduardo', perfil: 'Transição de Carreira', regiao: regiaoStr, whats: '22998877111' },
+        { nome: 'Beatriz Lima', perfil: 'Open to Work (RH)', regiao: regiaoStr, whats: '22988772222' },
+        { nome: 'Marcelo Santos', perfil: 'Profissional Liberal', regiao: regiaoStr, whats: '22996655333' },
+      ];
 
       setLeadsMinerados(baseGerada);
       setLotesGeradosHoje((prev) => prev + 1);
@@ -300,8 +217,9 @@ export default function SalaPage() {
   const totalLeads = leads.length;
   const pendentesFila = leads.filter((l) => (l.dados?.status_aprovacao || 'pendente') === 'pendente').length;
   const acompanhamentoLeads = leads.filter((l) => l.dados?.status_aprovacao === 'acompanhamento').length;
-  const fechadosLeads = leads.filter((l) => l.dados?.status_aprovacao === 'aprovado').length;
-  const taxaConversao = totalLeads > 0 ? Math.round((fechadosLeads / totalLeads) * 100) : 0;
+  const solicitadosMaster = leads.filter((l) => l.dados?.status_aprovacao === 'solicitado_master').length;
+  const codigosLiberados = leads.filter((l) => l.dados?.status_aprovacao === 'codigo_liberado').length;
+  const taxaConversao = totalLeads > 0 ? Math.round((codigosLiberados / totalLeads) * 100) : 0;
 
   const leadsFiltrados = leads.filter((item) => {
     const nome = item.dados?.convidado?.nome?.toLowerCase() || '';
@@ -332,9 +250,7 @@ export default function SalaPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               type="button"
-              onClick={() => {
-                window.location.href = '/';
-              }}
+              onClick={() => { window.location.href = '/'; }}
               style={{
                 background: 'rgba(0, 255, 136, 0.1)',
                 border: '1px solid rgba(0, 255, 136, 0.35)',
@@ -357,14 +273,11 @@ export default function SalaPage() {
                 <button
                   type="button"
                   className="sala-chave-btn"
-                  onClick={() => {
-                    window.location.href = '/gestor';
-                  }}
+                  onClick={() => { window.location.href = '/gestor'; }}
                 >
                   🔑 Chave do gestor
                 </button>
               )}
-
               <span className="sala-status-dot" />
               AMBIENTE CRC
             </div>
@@ -532,9 +445,6 @@ export default function SalaPage() {
                     <h4 style={{ fontSize: '14px', color: '#fff', margin: 0 }}>
                       ⚡ Lote Ativo Minerado para {municipioSelecionado} - {estadoSelecionado} ({leadsMinerados.length} Perfis Prontos)
                     </h4>
-                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
-                      💡 Copie o link e clique em "Enviar Santinho Digital"
-                    </span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
@@ -572,7 +482,7 @@ export default function SalaPage() {
                             <button
                               onClick={() => {
                                 navigator.clipboard.writeText(linkBaseGestor);
-                                alert(`📋 Link do SCOUT copiado com sucesso para a área de transferência!`);
+                                alert(`📋 Link do SCOUT copiado com sucesso!`);
                               }}
                               style={{
                                 background: 'rgba(255,255,255,0.06)',
@@ -585,7 +495,6 @@ export default function SalaPage() {
                                 cursor: 'pointer',
                                 whiteSpace: 'nowrap',
                               }}
-                              title="Copiar link do Santinho Digital"
                             >
                               📋 Copiar Link
                             </button>
@@ -646,9 +555,6 @@ export default function SalaPage() {
                           Copiar Link
                         </button>
                       </div>
-                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', display: 'block', marginTop: '6px' }}>
-                        ID do Gestor Vinculado: <code style={{ color: '#00ff88' }}>{gestor?.slug || 'master'}</code>
-                      </span>
                     </div>
                   </div>
                 </div>
@@ -661,33 +567,33 @@ export default function SalaPage() {
                   <div style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,0,0,0.6))', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '18px 20px', marginBottom: '22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                       <span style={{ background: '#00ff88', color: '#050505', padding: '3px 8px', borderRadius: '6px', fontWeight: '900', fontSize: '10px', letterSpacing: '1px' }}>
-                        CONCEITO OPERACIONAL
+                        FLUXO MASTER
                       </span>
                       <h4 style={{ margin: 0, color: '#fff', fontSize: '15px' }}>
-                        O SCOUT opera sob a Lei das Médias
+                        Atendimento X1 e Validação de Chaves
                       </h4>
                     </div>
                     <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5' }}>
-                      O sucesso na construção da comunidade não vem de acumular centenas de conversas rasas, mas da <strong>constância e foco na qualidade do X1</strong>. O SCOUT limita sua fila ativa a um <strong>lote diário de até 5 prospectos quentes por vez</strong> para evitar a obesidade de leads. Conclua ou classifique o atendimento para liberar o próximo lote com taxa máxima de conversão!
+                      Realize o atendimento no X1. Após a qualificação, solicite a autorização de emissão de código ao <strong>Master (Gilmar)</strong> diretamente por esta central.
                     </p>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '22px' }}>
                     <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>LOTE ATIVO (MÁX 5)</span>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>LOTE ATIVO</span>
                       <strong style={{ fontSize: '20px', color: '#00ff88' }}>{pendentesFila}</strong>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>EM ACOMPANHAMENTO</span>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>ACOMPANHAMENTO</span>
                       <strong style={{ fontSize: '20px', color: '#2bd9ff' }}>{acompanhamentoLeads}</strong>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>FECHADOS OZONTECK</span>
-                      <strong style={{ fontSize: '20px', color: '#00ff88' }}>{fechadosLeads}</strong>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>AGUARDANDO MASTER</span>
+                      <strong style={{ fontSize: '20px', color: '#ffd700' }}>{solicitadosMaster}</strong>
                     </div>
                     <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.25)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
-                      <span style={{ fontSize: '9px', color: '#00ff88', letterSpacing: '1px', display: 'block' }}>TAXA DE EFICIÊNCIA</span>
-                      <strong style={{ fontSize: '20px', color: '#fff' }}>{taxaConversao}%</strong>
+                      <span style={{ fontSize: '9px', color: '#00ff88', letterSpacing: '1px', display: 'block' }}>CÓDIGOS LIBERADOS</span>
+                      <strong style={{ fontSize: '20px', color: '#fff' }}>{codigosLiberados}</strong>
                     </div>
                   </div>
 
@@ -696,15 +602,35 @@ export default function SalaPage() {
                       <span className="sala-eyebrow" style={{ color: '#00ff88' }}>FILA ATIVA DE ATENDIMENTO</span>
                       <h3 style={{ fontSize: '18px', margin: '2px 0', color: '#fff' }}>Prospectos Qualificados no Quiz</h3>
                     </div>
-                    <button
-                      onClick={carregarLeadsScout}
-                      style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
-                    >
-                      🔄 Atualizar Fila
-                    </button>
+                    
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => window.print()}
+                        style={{
+                          background: 'rgba(255,255,255,0.08)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                        }}
+                        title="Imprimir Prancheta A4 de Acompanhamento"
+                      >
+                        🖨️ Imprimir / Baixar PDF
+                      </button>
+
+                      <button
+                        onClick={carregarLeadsScout}
+                        style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
+                      >
+                        🔄 Atualizar Fila
+                      </button>
+                    </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '20px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '20px' }} className="no-print">
                     <input
                       type="text"
                       placeholder="Buscar por nome..."
@@ -727,7 +653,8 @@ export default function SalaPage() {
                       <option value="todos">Todos os Status</option>
                       <option value="pendente">Pendentes (Fila Ativa)</option>
                       <option value="acompanhamento">Em Acompanhamento</option>
-                      <option value="aprovado">Fechados (Ozonteck)</option>
+                      <option value="solicitado_master">Aguardando Master</option>
+                      <option value="codigo_liberado">Códigos Liberados</option>
                       <option value="desqualificado">Desqualificados</option>
                     </select>
                   </div>
@@ -752,6 +679,7 @@ export default function SalaPage() {
                         return (
                           <div
                             key={item.id}
+                            className="lead-card-printable"
                             style={{
                               background: 'rgba(0,0,0,0.5)',
                               border: '1px solid rgba(0,255,136,0.2)',
@@ -772,8 +700,8 @@ export default function SalaPage() {
                                   {item.dados?.perfil?.toUpperCase() || 'RESPOSTAS QUIZ'}
                                 </span>
                                 
-                                <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', background: statusAtual === 'aprovado' ? 'rgba(0,255,136,0.2)' : statusAtual === 'acompanhamento' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.08)', color: statusAtual === 'aprovado' ? '#00ff88' : statusAtual === 'acompanhamento' ? '#2bd9ff' : 'rgba(255,255,255,0.6)' }}>
-                                  {statusAtual === 'aprovado' ? '🟢 FECHADO' : statusAtual === 'acompanhamento' ? '🟡 ACOMPANHAMENTO' : '⚪ PENDENTE X1'}
+                                <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', background: statusAtual === 'codigo_liberado' ? 'rgba(0,255,136,0.2)' : statusAtual === 'solicitado_master' ? 'rgba(255,215,0,0.2)' : statusAtual === 'acompanhamento' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.08)', color: statusAtual === 'codigo_liberado' ? '#00ff88' : statusAtual === 'solicitado_master' ? '#ffd700' : statusAtual === 'acompanhamento' ? '#2bd9ff' : 'rgba(255,255,255,0.6)' }}>
+                                  {statusAtual === 'codigo_liberado' ? `✦ CÓDIGO: ${item.dados.codigo_master || 'ATIVO'}` : statusAtual === 'solicitado_master' ? '🟡 AGUARDANDO CÓDIGO MASTER' : statusAtual === 'acompanhamento' ? '🔵 EM ACOMPANHAMENTO' : '⚪ PENDENTE X1'}
                                 </span>
                               </div>
 
@@ -791,20 +719,23 @@ export default function SalaPage() {
                                 </div>
                               )}
 
-                              <div style={{ marginTop: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                              <div style={{ marginTop: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }} className="no-print">
                                 <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', alignSelf: 'center', marginRight: '4px' }}>Classificar X1:</span>
+                                
                                 <button
-                                  onClick={() => atualizarStatusLead(item.id, 'aprovado')}
-                                  style={{ background: 'rgba(0,255,136,0.12)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                                  onClick={() => atualizarStatusLead(item.id, 'solicitado_master')}
+                                  style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.3)', color: '#ffd700', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
                                 >
-                                  🟢 Fechou Ozonteck
+                                  🟢 Solicitar Código ao Master
                                 </button>
+
                                 <button
                                   onClick={() => atualizarStatusLead(item.id, 'acompanhamento')}
                                   style={{ background: 'rgba(43,217,255,0.12)', border: '1px solid rgba(43,217,255,0.3)', color: '#2bd9ff', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
                                 >
-                                  🟡 Acompanhamento
+                                  🔵 Acompanhamento
                                 </button>
+
                                 <button
                                   onClick={() => atualizarStatusLead(item.id, 'desqualificado')}
                                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}
@@ -814,7 +745,7 @@ export default function SalaPage() {
                               </div>
                             </div>
 
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '130px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '130px' }} className="no-print">
                               {whatsClean && (
                                 <a
                                   href={linkWhats}
@@ -835,9 +766,6 @@ export default function SalaPage() {
                                   💬 Iniciar X1
                                 </a>
                               )}
-                              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
-                                ID: {item.gestor_id || 'master'}
-                              </span>
                             </div>
                           </div>
                         );
@@ -878,400 +806,33 @@ export default function SalaPage() {
         </footer>
       </div>
 
-      {/* Modal Restrito */}
-      {moduloRestrito && (
-        <div className="sala-modal-backdrop" onClick={() => setModuloRestrito(null)}>
-          <div className="sala-modal" onClick={(event) => event.stopPropagation()}>
-            <div className="sala-modal-lock">🔒</div>
-            <div className="sala-eyebrow">SALA DE OPERAÇÕES · VALIDAÇÃO PENDENTE</div>
-            <h2>{moduloRestrito.nome}</h2>
-            <p>{moduloRestrito.descricao}</p>
-
-            <div className="sala-modal-message">
-              Bem-vindo à Sala de Operações! Sua solicitação deu entrada no sistema.
-              <br />
-              <strong>Aguarde a validação do seu Gestor de referência para desbloquear este recurso no atendimento X1.</strong>
-            </div>
-
-            <button
-              type="button"
-              className="sala-modal-close"
-              onClick={() => setModuloRestrito(null)}
-            >
-              Compreendido
-            </button>
-          </div>
-        </div>
-      )}
-
-      <style jsx>{`
-        .sala-page {
-          min-height: 100vh;
-          background: radial-gradient(circle at 70% 16%, rgba(0, 255, 136, 0.08), transparent 26%), #050505;
-          color: #f5f7f8;
-          padding: 18px;
-        }
-        .sala-shell {
-          min-height: calc(100vh - 36px);
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 24px;
-          background: rgba(8, 10, 10, 0.72);
-          box-shadow: 0 30px 100px rgba(0, 0, 0, 0.45);
-          overflow: hidden;
-        }
-        .sala-header {
-          min-height: 76px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 0 26px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-          background: rgba(255, 255, 255, 0.015);
-        }
-        .sala-brand {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        }
-        .sala-brand-mark {
-          display: flex;
-          width: 42px;
-          height: 42px;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgba(0, 255, 136, 0.42);
-          border-radius: 12px;
-          color: #00ff88;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 1px;
-        }
-        .sala-brand-name {
-          font-size: 15px;
-          font-weight: 800;
-          letter-spacing: 2px;
-        }
-        .sala-brand-subtitle {
-          margin-top: 3px;
-          color: rgba(255, 255, 255, 0.45);
-          font-size: 10px;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-        .sala-header-status {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          color: rgba(255, 255, 255, 0.45);
-          font-size: 10px;
-          font-weight: 700;
-          letter-spacing: 1.4px;
-        }
-        .sala-chave-btn {
-          background: rgba(0,255,136,0.1);
-          border: 1px solid rgba(0,255,136,0.3);
-          color: #00ff88;
-          padding: 6px 12px;
-          border-radius: 8px;
-          cursor: pointer;
-          font-weight: bold;
-          font-size: 10px;
-        }
-        .sala-status-dot {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: #00ff88;
-          box-shadow: 0 0 14px rgba(0, 255, 136, 0.75);
-        }
-        .sala-layout {
-          display: grid;
-          grid-template-columns: 260px minmax(0, 1fr);
-          min-height: calc(100vh - 112px);
-        }
-        .sala-sidebar {
-          display: flex;
-          flex-direction: column;
-          border-right: 1px solid rgba(255, 255, 255, 0.07);
-          background: rgba(0, 0, 0, 0.18);
-        }
-        .sala-sidebar-heading {
-          display: flex;
-          justify-content: space-between;
-          padding: 22px 18px 12px;
-          color: rgba(255, 255, 255, 0.42);
-          font-size: 9px;
-          letter-spacing: 1.7px;
-        }
-        .sala-menu {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-          padding: 0 10px;
-        }
-        .sala-menu-group {
-          display: flex;
-          flex-direction: column;
-        }
-        .sala-menu-item {
-          display: grid;
-          grid-template-columns: 30px minmax(0, 1fr) auto;
-          gap: 10px;
-          align-items: center;
-          width: 100%;
-          padding: 12px 10px;
-          color: inherit;
-          text-align: left;
-          background: transparent;
-          border: 1px solid transparent;
-          border-radius: 12px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .sala-menu-item:hover, .sala-menu-item.active {
-          border-color: rgba(0, 255, 136, 0.25);
-          background: rgba(0, 255, 136, 0.06);
-        }
-        .sala-sublinks {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-          padding-left: 36px;
-          padding-top: 4px;
-          padding-bottom: 6px;
-        }
-        .sala-sublink-btn {
-          background: transparent;
-          border: none;
-          color: rgba(255, 255, 255, 0.5);
-          text-align: left;
-          font-size: 11px;
-          padding: 6px 10px;
-          border-radius: 6px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-        }
-        .sala-sublink-btn:hover, .sala-sublink-btn.active {
-          color: #00ff88;
-          background: rgba(0, 255, 136, 0.04);
-        }
-        .sala-menu-icon {
-          display: flex;
-          width: 30px;
-          height: 30px;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 9px;
-          color: rgba(255, 255, 255, 0.55);
-          font-size: 12px;
-        }
-        .sala-menu-copy {
-          display: flex;
-          min-width: 0;
-          flex-direction: column;
-          gap: 3px;
-        }
-        .sala-menu-copy strong {
-          font-size: 12px;
-          font-weight: 700;
-        }
-        .sala-menu-copy small {
-          color: rgba(255, 255, 255, 0.34);
-          font-size: 9px;
-        }
-        .sala-lock {
-          color: rgba(255, 255, 255, 0.28);
-          font-size: 12px;
-        }
-        .sala-sidebar-footer {
-          margin-top: auto;
-          padding: 18px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .sala-visitor-tag {
-          display: inline-flex;
-          padding: 6px 8px;
-          border: 1px solid rgba(0, 255, 136, 0.2);
-          border-radius: 999px;
-          color: #00ff88;
-          font-size: 8px;
-          font-weight: 800;
-          letter-spacing: 1.2px;
-        }
-        .sala-gestor-name {
-          display: block;
-          margin-top: 10px;
-          color: rgba(255, 255, 255, 0.88);
-          font-size: 13px;
-          font-weight: 700;
-        }
-        .sala-sidebar-footer p {
-          margin-top: 10px;
-          color: rgba(255, 255, 255, 0.4);
-          font-size: 10px;
-          line-height: 1.5;
-        }
-        .sala-main {
-          min-width: 0;
-          padding: 28px;
-        }
-        .sala-welcome {
-          display: flex;
-          align-items: flex-end;
-          justify-content: space-between;
-          gap: 30px;
-          padding-bottom: 24px;
-        }
-        .sala-eyebrow {
-          color: rgba(255, 255, 255, 0.42);
-          font-size: 9px;
-          font-weight: 800;
-          letter-spacing: 1.7px;
-          text-transform: uppercase;
-        }
-        .sala-welcome h1 {
-          max-width: 720px;
-          margin: 8px 0 10px;
-          font-size: clamp(28px, 4vw, 52px);
-          line-height: 0.98;
-          letter-spacing: -1.7px;
-        }
-        .sala-welcome h1 span {
-          color: #00ff88;
-        }
-        .sala-welcome p {
-          max-width: 650px;
-          margin: 0;
-          color: rgba(255, 255, 255, 0.55);
-          font-size: 13px;
-          line-height: 1.65;
-        }
-        .sala-welcome-mark {
-          min-width: 190px;
-          padding: 12px 0 0;
-          text-align: right;
-        }
-        .sala-welcome-mark span {
-          display: block;
-          color: rgba(255, 255, 255, 0.07);
-          font-size: 58px;
-          font-weight: 900;
-          line-height: 0.8;
-          letter-spacing: 5px;
-        }
-        .sala-welcome-mark small {
-          display: block;
-          margin-top: 10px;
-          color: rgba(255, 255, 255, 0.25);
-          font-size: 8px;
-          letter-spacing: 1.3px;
-        }
-        .sala-center-viewport {
-          margin-top: 10px;
-        }
-        .sala-dynamic-card {
-          background: rgba(0, 255, 136, 0.03);
-          border: 1px solid rgba(0, 255, 136, 0.2);
-          border-radius: 20px;
-          padding: 30px;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-        .sala-hero-art-container {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          background: rgba(255, 255, 255, 0.015);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 20px;
-          padding: 34px;
-        }
-        .sala-art-text h2 {
-          font-size: 22px;
-          margin: 6px 0 10px;
-          color: #fff;
-        }
-        .sala-art-text p {
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.5);
-          line-height: 1.6;
-        }
-        .sala-footer {
-          display: flex;
-          justify-content: space-between;
-          padding: 14px 24px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          color: rgba(255, 255, 255, 0.24);
-          font-size: 8px;
-          letter-spacing: 1.3px;
-          text-transform: uppercase;
-        }
-        .sala-modal-backdrop {
-          position: fixed;
-          inset: 0;
-          z-index: 50;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          background: rgba(0, 0, 0, 0.76);
-          backdrop-filter: blur(10px);
-        }
-        .sala-modal {
-          width: min(460px, 100%);
-          padding: 30px;
-          border: 1px solid rgba(0, 255, 136, 0.16);
-          border-radius: 22px;
-          background: #0b0f0d;
-          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
-          text-align: center;
-        }
-        .sala-modal-lock {
-          display: flex;
-          width: 48px;
-          height: 48px;
-          margin: 0 auto 18px;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgba(0, 255, 136, 0.2);
-          border-radius: 15px;
-          color: #00ff88;
-          font-size: 18px;
-        }
-        .sala-modal h2 {
-          margin: 8px 0 10px;
-          font-size: 28px;
-        }
-        .sala-modal p {
-          color: rgba(255, 255, 255, 0.45);
-          font-size: 12px;
-          line-height: 1.5;
-        }
-        .sala-modal-message {
-          margin-top: 18px;
-          padding: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 14px;
-          background: rgba(255, 255, 255, 0.025);
-          color: rgba(255, 255, 255, 0.46);
-          font-size: 11px;
-          line-height: 1.6;
-        }
-        .sala-modal-message strong {
-          color: #f0f3f3;
-        }
-        .sala-modal-close {
-          width: 100%;
-          margin-top: 18px;
-          padding: 12px 16px;
-          border: 1px solid rgba(0, 255, 136, 0.28);
-          border-radius: 12px;
-          background: rgba(0, 255, 136, 0.06);
-          color: #00ff88;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.9px;
-          cursor: pointer;
+      {/* CSS ESPECIAL PARA IMPRESSÃO LIMPA E A4 */}
+      <style jsx global>{`
+        @media print {
+          body {
+            background: #fff !important;
+            color: #000 !important;
+          }
+          .sala-header, .sala-sidebar, .sala-welcome, .sala-footer, .no-print {
+            display: none !important;
+          }
+          .sala-shell, .sala-main, .sala-dynamic-card {
+            border: none !important;
+            box-shadow: none !important;
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .lead-card-printable {
+            background: #fff !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+            page-break-inside: avoid;
+            margin-bottom: 10px !important;
+          }
+          .lead-card-printable strong, .lead-card-printable span {
+            color: #000 !important;
+          }
         }
       `}</style>
     </main>
