@@ -533,7 +533,7 @@ export default function SalaPage() {
                       ⚡ Lote Ativo Minerado para {municipioSelecionado} - {estadoSelecionado} ({leadsMinerados.length} Perfis Prontos)
                     </h4>
                     <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
-                      💡 Clique em "Enviar Santinho Digital" para disparar a isca de atração
+                      💡 Copie o link e clique em "Enviar Santinho Digital"
                     </span>
                   </div>
 
@@ -568,24 +568,47 @@ export default function SalaPage() {
                             </p>
                           </div>
 
-                          <a
-                            href={linkWhatsSantinho}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                              background: '#00ff88',
-                              color: '#050505',
-                              fontWeight: 'bold',
-                              fontSize: '11px',
-                              padding: '8px 12px',
-                              borderRadius: '8px',
-                              textDecoration: 'none',
-                              textAlign: 'center',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            📨 Enviar Santinho Digital
-                          </a>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(linkBaseGestor);
+                                alert(`📋 Link do SCOUT copiado com sucesso para a área de transferência!`);
+                              }}
+                              style={{
+                                background: 'rgba(255,255,255,0.06)',
+                                border: '1px solid rgba(0,255,136,0.3)',
+                                color: '#00ff88',
+                                fontWeight: 'bold',
+                                fontSize: '11px',
+                                padding: '8px 10px',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                whiteSpace: 'nowrap',
+                              }}
+                              title="Copiar link do Santinho Digital"
+                            >
+                              📋 Copiar Link
+                            </button>
+
+                            <a
+                              href={linkWhatsSantinho}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{
+                                background: '#00ff88',
+                                color: '#050505',
+                                fontWeight: 'bold',
+                                fontSize: '11px',
+                                padding: '8px 12px',
+                                borderRadius: '8px',
+                                textDecoration: 'none',
+                                textAlign: 'center',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              📨 Enviar Santinho Digital
+                            </a>
+                          </div>
                         </div>
                       );
                     })}
