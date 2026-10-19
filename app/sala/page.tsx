@@ -54,6 +54,14 @@ const modulos: Modulo[] = [
   },
 ];
 
+// Dados geográficos simulados para os Dropdowns
+const municipiosPorEstado: Record<string, string[]> = {
+  RJ: ['Cabo Frio', 'Arraial do Cabo', 'Búzios', 'Niterói', 'Rio de Janeiro', 'Campos dos Goytacazes', 'Petrópolis', 'Macaé'],
+  SP: ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'São José dos Campos'],
+  MG: ['Belo Horizonte', 'Uberlândia', 'Juiz de Fora', 'Contagem'],
+  ES: ['Vitória', 'Vila Velha', 'Serra', 'Cariacica'],
+};
+
 export default function SalaPage() {
   const [moduloAtivo, setModuloAtivo] = useState<string | null>('Seu SCOUT');
   const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Prospecto Digital');
@@ -68,14 +76,35 @@ export default function SalaPage() {
     slug: string | null;
   } | null>(null);
 
-  // Estados do Link 1 (Prospecto Digital - Motor de Mineração PF / LinkedIn)
+  // Estados do Link 1 (Prospecto Digital - Motor de Mineração PF com Dropdowns e Lote de 20)
+  const [estadoSelecionado, setEstadoSelecionado] = useState<string>('RJ');
+  const [municipioSelecionado, setMunicipioSelecionado] = useState<string>('Cabo Frio');
   const [nichoPfSelecionado, setNichoPfSelecionado] = useState<'transicao' | 'liberais' | 'consumo'>('transicao');
-  const [regiaoMineracao, setRegiaoMineracao] = useState<string>('Cabo Frio - RJ');
   const [minerando, setMinerando] = useState(false);
-  const [leadsMineradosSimulados, setLeadsMineradosSimulados] = useState<Array<{nome: string; perfil: string; regiao: string; whats: string}>>([
-    { nome: 'Carla Mendes', perfil: 'Em Transição de Carreira (LinkedIn Open to Work)', regiao: 'Cabo Frio - RJ', whats: '22998877661' },
-    { nome: 'Rafael Souza', perfil: 'Profissional Liberal / Estética & Bem-estar', regiao: 'Cabo Frio - RJ', whats: '22988112233' },
-    { nome: 'Juliana Freitas', perfil: 'Busca de Renda Extra / Consumo Inteligente', regiao: 'Cabo Frio - RJ', whats: '22991223344' }
+  
+  // Controle da Trava Antitravamento (Limite de lotes pendentes)
+  const [lotesGeradosHoje, setLotesGeradosHoje] = useState<number>(1);
+  const [leadsMinerados, setLeadsMinerados] = useState<Array<{nome: string; perfil: string; regiao: string; whats: string}>>([
+    { nome: 'Marcos Vinícius', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: 'Cabo Frio - RJ', whats: '22997788554' },
+    { nome: 'Tatiane Antunes', perfil: 'Profissional Liberal (Saúde & Bem-estar)', regiao: 'Cabo Frio - RJ', whats: '22988334455' },
+    { nome: 'Cláudia Ribeiro', perfil: 'Consumo Inteligente & Comunidade', regiao: 'Cabo Frio - RJ', whats: '22996655443' },
+    { nome: 'Roberto Carlos', perfil: 'Open to Work (LinkedIn / Logística)', regiao: 'Cabo Frio - RJ', whats: '22991122334' },
+    { nome: 'Vanessa Lima', perfil: 'Transição de Carreira (Comercial)', regiao: 'Cabo Frio - RJ', whats: '22995544332' },
+    { nome: 'Bruno Alencar', perfil: 'Profissional Autônomo / Educação Física', regiao: 'Cabo Frio - RJ', whats: '22988776655' },
+    { nome: 'Camila Duarte', perfil: 'Busca de Renda Extra / Famílias', regiao: 'Cabo Frio - RJ', whats: '22993322110' },
+    { nome: 'Diego Martins', perfil: 'Open to Work (LinkedIn / TI)', regiao: 'Cabo Frio - RJ', whats: '22994455667' },
+    { nome: 'Fernanda Souza', perfil: 'Profissional Liberal / Estética', regiao: 'Cabo Frio - RJ', whats: '22988223344' },
+    { nome: 'Lucas Peixoto', perfil: 'Transição de Carreira (Financeiro)', regiao: 'Cabo Frio - RJ', whats: '22999887766' },
+    { nome: 'Mariana Costa', perfil: 'Consumo Consciente & Sustentabilidade', regiao: 'Cabo Frio - RJ', whats: '22991234567' },
+    { nome: 'Rodrigo Pires', perfil: 'Open to Work (LinkedIn / Vendas)', regiao: 'Cabo Frio - RJ', whats: '22988665544' },
+    { nome: 'Juliana Mendes', perfil: 'Profissional Liberal / Terapias', regiao: 'Cabo Frio - RJ', whats: '22997766554' },
+    { nome: 'Thiago Silva', perfil: 'Transição de Carreira (Operações)', regiao: 'Cabo Frio - RJ', whats: '22993344556' },
+    { nome: 'Patrícia Ramos', perfil: 'Busca de Renda Recorrente', regiao: 'Cabo Frio - RJ', whats: '22992211443' },
+    { nome: 'Alexandre Magno', perfil: 'Open to Work (LinkedIn / Gestão)', regiao: 'Cabo Frio - RJ', whats: '22995566778' },
+    { nome: 'Renata Castro', perfil: 'Profissional Liberal / Nutrição', regiao: 'Cabo Frio - RJ', whats: '22988443322' },
+    { nome: 'Eduardo Lima', perfil: 'Transição de Carreira (Atendimento)', regiao: 'Cabo Frio - RJ', whats: '22991144778' },
+    { nome: 'Sabrina Sato', perfil: 'Consumo Inteligente & Lar', regiao: 'Cabo Frio - RJ', whats: '22996633221' },
+    { nome: 'Gustavo Henrique', perfil: 'Open to Work (LinkedIn / Projetos)', regiao: 'Cabo Frio - RJ', whats: '22990099887' }
   ]);
 
   // Estados do Feedback de Prospectos
@@ -176,17 +205,96 @@ export default function SalaPage() {
     );
   };
 
-  const executarMineracaoRegional = () => {
+  // Motor de Mineração com base no Nicho e Região Selecionada (Lote de 20 + Trava Antitravamento)
+  const executarMineracaoPorNicho = (nicho: 'transicao' | 'liberais' | 'consumo') => {
+    if (lotesGeradosHoje >= 3) {
+      alert('🔒 Trava de Segurança da Lei das Médias: Você atingiu o limite de 3 lotes diários gerados. Conclua os atendimentos em andamento na sua Fila Ativa antes de extrair novos lotes para evitar sobrecarga.');
+      return;
+    }
+
+    setNichoPfSelecionado(nicho);
     setMinerando(true);
+
     setTimeout(() => {
-      setLeadsMineradosSimulados([
-        { nome: 'Marcos Vinícius', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: regiaoMineracao, whats: '22997788554' },
-        { nome: 'Tatiane Antunes', perfil: 'Profissional Liberal (Saúde & Bem-estar)', regiao: regiaoMineracao, whats: '22988334455' },
-        { nome: 'Cláudia Ribeiro', perfil: 'Consumo Inteligente & Comunidade', regiao: regiaoMineracao, whats: '22996655443' },
-        { nome: 'Roberto Carlos', perfil: 'Open to Work (LinkedIn / Logística)', regiao: regiaoMineracao, whats: '22991122334' },
-      ]);
+      const regiaoStr = `${municipioSelecionado} - ${estadoSelecionado}`;
+      
+      let baseGerada: Array<{nome: string; perfil: string; regiao: string; whats: string}> = [];
+
+      if (nicho === 'transicao') {
+        baseGerada = [
+          { nome: 'Carlos Eduardo', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: regiaoStr, whats: '22998877111' },
+          { nome: 'Beatriz Lima', perfil: 'Open to Work (LinkedIn / RH)', regiao: regiaoStr, whats: '22988772222' },
+          { nome: 'Marcelo Santos', perfil: 'Transição de Carreira (Comercial)', regiao: regiaoStr, whats: '22996655333' },
+          { nome: 'Ana Paula', perfil: 'Open to Work (LinkedIn / Finanças)', regiao: regiaoStr, whats: '22995544444' },
+          { nome: 'Lucas Gabriel', perfil: 'Transição de Carreira (Logística)', regiao: regiaoStr, whats: '22994433555' },
+          { nome: 'Larissa Manoela', perfil: 'Open to Work (LinkedIn / Atendimento)', regiao: regiaoStr, whats: '22993322666' },
+          { nome: 'Felipe Neto', perfil: 'Transição de Carreira (Marketing)', regiao: regiaoStr, whats: '22992211777' },
+          { nome: 'Juliana Paes', perfil: 'Open to Work (LinkedIn / Produção)', regiao: regiaoStr, whats: '22991100888' },
+          { nome: 'Renato Aragão', perfil: 'Transição de Carreira (Gestão)', regiao: regiaoStr, whats: '22990099999' },
+          { nome: 'Camila Pitanga', perfil: 'Open to Work (LinkedIn / Projetos)', regiao: regiaoStr, whats: '22989988888' },
+          { nome: 'Wagner Moura', perfil: 'Transição de Carreira (Tecnologia)', regiao: regiaoStr, whats: '22988877777' },
+          { nome: 'Alice Braga', perfil: 'Open to Work (LinkedIn / Vendas)', regiao: regiaoStr, whats: '22987766666' },
+          { nome: 'Rodrigo Santoro', perfil: 'Transição de Carreira (Consultoria)', regiao: regiaoStr, whats: '22986655555' },
+          { nome: 'Sônia Braga', perfil: 'Open to Work (LinkedIn / Operações)', regiao: regiaoStr, whats: '22985544444' },
+          { nome: 'Lázaro Ramos', perfil: 'Transição de Carreira (Supervisão)', regiao: regiaoStr, whats: '22984433333' },
+          { nome: 'Taís Araújo', perfil: 'Open to Work (LinkedIn / Comunicação)', regiao: regiaoStr, whats: '22983322222' },
+          { nome: 'Cauã Reymond', perfil: 'Transição de Carreira (Negócios)', regiao: regiaoStr, whats: '22982211111' },
+          { nome: 'Grazi Massafera', perfil: 'Open to Work (LinkedIn / Relacionamento)', regiao: regiaoStr, whats: '22981100000' },
+          { nome: 'Matheus Nachtergaele', perfil: 'Transição de Carreira (Estratégia)', regiao: regiaoStr, whats: '22980099999' },
+          { nome: 'Marjorie Estiano', perfil: 'Open to Work (LinkedIn / Planejamento)', regiao: regiaoStr, whats: '22979988888' },
+        ];
+      } else if (nicho === 'liberais') {
+        baseGerada = [
+          { nome: 'Dra. Mônica Sousa', perfil: 'Profissional Liberal (Estética Avançada)', regiao: regiaoStr, whats: '22991112233' },
+          { nome: 'Dr. Roberto Alves', perfil: 'Profissional Liberal (Quiropraxia)', regiao: regiaoStr, whats: '22992223344' },
+          { nome: 'Prof. Carla Dias', perfil: 'Educadora Física / Personal Trainer', regiao: regiaoStr, whats: '22993334455' },
+          { nome: 'Nutri. Patrícia Gomes', perfil: 'Profissional Liberal (Nutrição Funcional)', regiao: regiaoStr, whats: '22994445566' },
+          { nome: 'Terapeuta Hugo Leonardo', perfil: 'Terapeuta Holístico & Bem-estar', regiao: regiaoStr, whats: '22995556677' },
+          { nome: 'Enf. Kelly Cristina', perfil: 'Enfermeira Esteta / Ozonioterapia', regiao: regiaoStr, whats: '22996667788' },
+          { nome: 'Dr. Bruno Mars', perfil: 'Fisioterapeuta Desportivo', regiao: regiaoStr, whats: '22997778899' },
+          { nome: 'Psicóloga Amanda Costa', perfil: 'Profissional Liberal (Psicoterapia)', regiao: regiaoStr, whats: '22998889900' },
+          { nome: 'Consultora Vanessa Lopes', perfil: 'Coach de Desenvolvimento Humano', regiao: regiaoStr, whats: '22999900011' },
+          { nome: 'Esteticista Brenda Song', perfil: 'Especialista em Cuidados Faciais', regiao: regiaoStr, whats: '22981112233' },
+          { nome: 'Dr. Arthur Aguiar', perfil: 'Nutricionista Esportivo', regiao: regiaoStr, whats: '22982223344' },
+          { nome: 'Prof. Larissa Manoela', perfil: 'Instrutora de Yoga & Pilatos', regiao: regiaoStr, whats: '22983334455' },
+          { nome: 'Terapeuta Marcela Temer', perfil: 'Acupunturista & Saúde Integrativa', regiao: regiaoStr, whats: '22984445566' },
+          { nome: 'Dr. Fernando Rocha', perfil: 'Médico Integrativo', regiao: regiaoStr, whats: '22985556677' },
+          { nome: 'Massoterapeuta Cátia Paganote', perfil: 'Especialista em Drenagem', regiao: regiaoStr, whats: '22986667788' },
+          { nome: 'Enf. Daniel Rocha', perfil: 'Enfermeiro Cuidador Especializado', regiao: regiaoStr, whats: '22987778899' },
+          { nome: 'Prof. Sabrina Sato', perfil: 'Personal Trainer Online', regiao: regiaoStr, whats: '22988889900' },
+          { nome: 'Nutri. Gisele Bündchen', perfil: 'Consultora de Alimentos Orgânicos', regiao: regiaoStr, whats: '22989990011' },
+          { nome: 'Fisioterapeuta Kaká', perfil: 'Reabilitação Motora', regiao: regiaoStr, whats: '22980001122' },
+          { nome: 'Psicólogo Neymar Jr', perfil: 'Desenvolvimento Mental e Alta Performance', regiao: regiaoStr, whats: '22979992233' },
+        ];
+      } else {
+        baseGerada = [
+          { nome: 'Família Mendonça', perfil: 'Consumo Consciente & Economia Doméstica', regiao: regiaoStr, whats: '22991002003' },
+          { nome: 'Casal Alvarenga', perfil: 'Busca de Renda Recorrente para o Lar', regiao: regiaoStr, whats: '22992003004' },
+          { nome: 'Dona Maria de Lourdes', perfil: 'Consumidora Focada em Longevidade', regiao: regiaoStr, whats: '22993004005' },
+          { nome: 'Senhor João Pedro', perfil: 'Comunidade de Consumo Inteligente', regiao: regiaoStr, whats: '22994005006' },
+          { nome: 'Tatiane e Márcio', perfil: 'Redução de Custos com Produtos de Limpeza', regiao: regiaoStr, whats: '22995006007' },
+          { nome: 'Família Silveira', perfil: 'Alimentação Saudável & Bem-estar', regiao: regiaoStr, whats: '22996007008' },
+          { nome: 'Casal Belchior', perfil: 'Gestão Financeira Familiar', regiao: regiaoStr, whats: '22997008009' },
+          { nome: 'Dona Cida', perfil: 'Consumo Colaborativo de Bairro', regiao: regiaoStr, whats: '22998009010' },
+          { nome: 'Família Albuquerque', perfil: 'Qualidade de Vida e Prevenção', regiao: regiaoStr, whats: '22999010011' },
+          { nome: 'Casal Xavier', perfil: 'Economia Doméstica Inteligente', regiao: regiaoStr, whats: '22981011012' },
+          { nome: 'Dona Neusa', perfil: 'Mãe de Família Focada em Saúde', regiao: regiaoStr, whats: '22982012013' },
+          { nome: 'Família Goulart', perfil: 'Consumo Sustentável', regiao: regiaoStr, whats: '22983013014' },
+          { nome: 'Casal Buarque', perfil: 'Empreendedorismo em Família', regiao: regiaoStr, whats: '22984014015' },
+          { nome: 'Dona Zuleide', perfil: 'Rede de Consumo Solidário', regiao: regiaoStr, whats: '22985015016' },
+          { nome: 'Família Caymmi', perfil: 'Bem-estar e Longevidade em Casa', regiao: regiaoStr, whats: '22986016017' },
+          { nome: 'Casal Jobim', perfil: 'Descontos em Produtos de Consumo Diário', regiao: regiaoStr, whats: '22987017018' },
+          { nome: 'Dona Ivone', perfil: 'Comunidade Ativa de Consumidores', regiao: regiaoStr, whats: '22988018019' },
+          { nome: 'Família Veloso', perfil: 'Troca de Hábitos de Consumo', regiao: regiaoStr, whats: '22989019020' },
+          { nome: 'Casal Gil', perfil: 'Qualidade de Vida e Economia', regiao: regiaoStr, whats: '22980020021' },
+          { nome: 'Dona Elis', perfil: 'Membro Fundador de Comunidade Local', regiao: regiaoStr, whats: '22979021022' },
+        ];
+      }
+
+      setLeadsMinerados(baseGerada);
+      setLotesGeradosHoje((prev) => prev + 1);
       setMinerando(false);
-    }, 1200);
+    }, 1000);
   };
 
   const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}&nicho=pf`;
@@ -343,76 +451,102 @@ export default function SalaPage() {
             </div>
 
             <div className="sala-center-viewport">
-              {/* LINK 1: PROSPECTO DIGITAL - MOTOR DE MINERAÇÃO DE PESSOAS FÍSICAS / LINKEDIN */}
+              {/* LINK 1: PROSPECTO DIGITAL - MINERAÇÃO PF COM DROPDOWN ESTADOS/CIDADES E LOTE 20 */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1 (MOTOR DE MINERAÇÃO PF)</span>
-                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Sem Garimpo Manual)</h3>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Mineração Regional Automatizada)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    O SCOUT varre automaticamente redes profissionais (como <strong>LinkedIn</strong>) e diretórios regionais focando estritamente em <strong>Pessoas Físicas, Transição de Carreira e Profissionais Liberais</strong> (comércio físico tradicional excluído).
+                    O SCOUT extrai lotes de <strong>20 perfis qualificados por vez</strong> (Pessoas Físicas, Transição LinkedIn e Liberais) com base estrita no Estado e Município selecionados.
                   </p>
 
+                  {/* PAINEL DE SELEÇÃO GEOGRÁFICA (DROPDOWNS) */}
                   <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr auto', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
+                      
+                      {/* DROPDOWN DE ESTADOS */}
                       <div>
                         <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
-                          📍 REGIÃO ALVO DO GESTOR:
+                          📍 ESTADO:
                         </label>
-                        <input
-                          type="text"
-                          value={regiaoMineracao}
-                          onChange={(e) => setRegiaoMineracao(e.target.value)}
-                          placeholder="Ex: Cabo Frio - RJ"
-                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(255,255,255,0.2)', padding: '10px 14px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}
-                        />
+                        <select
+                          value={estadoSelecionado}
+                          onChange={(e) => {
+                            const novoEstado = e.target.value;
+                            setEstadoSelecionado(novoEstado);
+                            setMunicipioSelecionado(municipiosPorEstado[novoEstado]?.[0] || '');
+                          }}
+                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
+                        >
+                          {Object.keys(municipiosPorEstado.reduce((acc, cur) => ({...acc, [cur]: true}), {} as Record<string, boolean>)).map((uf) => (
+                            <option key={uf} value={uf}>{uf}</option>
+                          ))}
+                        </select>
                       </div>
-                      <button
-                        type="button"
-                        onClick={executarMineracaoRegional}
-                        style={{
-                          background: '#00ff88',
-                          color: '#050505',
-                          border: 'none',
-                          padding: '12px 20px',
-                          borderRadius: '10px',
-                          fontWeight: 'bold',
-                          cursor: 'pointer',
-                          fontSize: '11px',
-                          marginTop: '18px',
-                        }}
-                      >
-                        {minerando ? '⚙️ Minerando Leads...' : '🔍 Executar Mineração Regional'}
-                      </button>
+
+                      {/* DROPDOWN DE MUNICÍPIOS */}
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
+                          🏙️ MUNICÍPIO / REGIÃO:
+                        </label>
+                        <select
+                          value={municipioSelecionado}
+                          onChange={(e) => setMunicipioSelecionado(e.target.value)}
+                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
+                        >
+                          {(municipiosPorEstado[estadoSelecionado] || []).map((mun) => (
+                            <option key={mun} value={mun}>{mun}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* INDICADOR DE LOTES GERADOS HOJE (TRAVA ANTITRAVAMENTO) */}
+                      <div style={{ textAlign: 'right', marginTop: '14px' }}>
+                        <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', display: 'block' }}>LOTES GERADOS HOJE</span>
+                        <strong style={{ fontSize: '14px', color: lotesGeradosHoje >= 3 ? '#ff4d4d' : '#00ff88' }}>
+                          {lotesGeradosHoje} / 3 máx
+                        </strong>
+                      </div>
                     </div>
 
+                    {/* BOTÕES DE NICHOS CLICÁVEIS QUE GERAM O LOTE DE 20 */}
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      <span
-                        onClick={() => setNichoPfSelecionado('transicao')}
-                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,255,136,0.2)' }}
+                      <button
+                        type="button"
+                        onClick={() => executarMineracaoPorNicho('transicao')}
+                        style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 'bold' }}
                       >
-                        💼 Em Transição / LinkedIn (Open to Work)
-                      </span>
-                      <span
-                        onClick={() => setNichoPfSelecionado('liberais')}
-                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : 'rgba(255,255,255,0.6)', border: '1px solid rgba(43,217,255,0.2)' }}
+                        {minerando && nichoPfSelecionado === 'transicao' ? '⚙️ Extraindo 20...' : '💼 Minerar Transição (LinkedIn)'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => executarMineracaoPorNicho('liberais')}
+                        style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : 'rgba(255,255,255,0.7)', border: '1px solid rgba(43,217,255,0.3)', fontWeight: 'bold' }}
                       >
-                        🩺 Profissionais Liberais & Autônomos
-                      </span>
-                      <span
-                        onClick={() => setNichoPfSelecionado('consumo')}
-                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,215,0,0.2)' }}
+                        {minerando && nichoPfSelecionado === 'liberais' ? '⚙️ Extraindo 20...' : '🩺 Minerar Profissionais Liberais'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => executarMineracaoPorNicho('consumo')}
+                        style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : 'rgba(255,255,255,0.7)', border: '1px solid rgba(255,255,255,0.15)', fontWeight: 'bold' }}
                       >
-                        🛒 Consumo Consciente & Famílias
-                      </span>
+                        {minerando && nichoPfSelecionado === 'consumo' ? '⚙️ Extraindo 20...' : '🛒 Minerar Consumo Consciente'}
+                      </button>
                     </div>
                   </div>
 
-                  <h4 style={{ fontSize: '14px', color: '#fff', marginBottom: '12px' }}>
-                    ⚡ Lote Minerado para {regiaoMineracao} ({leadsMineradosSimulados.length} Perfis Prontos)
-                  </h4>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <h4 style={{ fontSize: '14px', color: '#fff', margin: 0 }}>
+                      ⚡ Lote Ativo Minerado para {municipioSelecionado} - {estadoSelecionado} ({leadsMinerados.length} Perfis Prontos)
+                    </h4>
+                    <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                      💡 Clique em "Iniciar Abordagem X1" para disparar o primeiro contato
+                    </span>
+                  </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {leadsMineradosSimulados.map((lead, index) => {
+                  {/* LISTAGEM DOS 20 PROSPECTOS MINERADOS */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
+                    {leadsMinerados.map((lead, index) => {
                       const msgW = encodeURIComponent(`Olá ${lead.nome}, notei seu perfil voltado a ${lead.perfil} na região de ${lead.regiao}. Convidamos você para conhecer o modelo CRC.`);
                       const linkW = `https://wa.me/55${lead.whats}?text=${msgW}`;
 
@@ -455,9 +589,10 @@ export default function SalaPage() {
                               borderRadius: '8px',
                               textDecoration: 'none',
                               textAlign: 'center',
+                              whiteSpace: 'nowrap',
                             }}
                           >
-                            💬 Iniciar X1 Direto
+                            💬 Iniciar Abordagem X1
                           </a>
                         </div>
                       );
