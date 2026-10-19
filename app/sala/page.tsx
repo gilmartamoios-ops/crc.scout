@@ -55,13 +55,6 @@ const modulos: Modulo[] = [
   },
 ];
 
-const municipiosPorEstado: Record<string, string[]> = {
-  RJ: ['Cabo Frio', 'Arraial do Cabo', 'Búzios', 'Niterói', 'Rio de Janeiro', 'Campos dos Goytacazes', 'Petrópolis', 'Macaé'],
-  SP: ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'São José dos Campos'],
-  MG: ['Belo Horizonte', 'Uberlândia', 'Juiz de Fora', 'Contagem'],
-  ES: ['Vitória', 'Vila Velha', 'Serra', 'Cariacica'],
-};
-
 export default function SalaPage() {
   const [moduloAtivo, setModuloAtivo] = useState<string | null>('Seu SCOUT');
   const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Prospecto Digital');
@@ -76,22 +69,7 @@ export default function SalaPage() {
     slug: string | null;
   } | null>(null);
 
-  // Estados do Link 1 (Prospecto Digital)
-  const [estadoSelecionado, setEstadoSelecionado] = useState<string>('RJ');
-  const [municipioSelecionado, setMunicipioSelecionado] = useState<string>('Cabo Frio');
-  const [nichoPfSelecionado, setNichoPfSelecionado] = useState<'transicao' | 'liberais' | 'consumo'>('transicao');
-  const [minerando, setMinerando] = useState(false);
-  
-  const [lotesGeradosHoje, setLotesGeradosHoje] = useState<number>(1);
-  const [leadsMinerados, setLeadsMinerados] = useState<Array<{nome: string; perfil: string; regiao: string; whats: string}>>([
-    { nome: 'Marcos Vinícius', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: 'Cabo Frio - RJ', whats: '22997788554' },
-    { nome: 'Tatiane Antunes', perfil: 'Profissional Liberal (Saúde & Bem-estar)', regiao: 'Cabo Frio - RJ', whats: '22988334455' },
-    { nome: 'Cláudia Ribeiro', perfil: 'Consumo Inteligente & Comunidade', regiao: 'Cabo Frio - RJ', whats: '22996655443' },
-    { nome: 'Roberto Carlos', perfil: 'Open to Work (LinkedIn / Logística)', regiao: 'Cabo Frio - RJ', whats: '22991122334' },
-    { nome: 'Vanessa Lima', perfil: 'Transição de Carreira (Comercial)', regiao: 'Cabo Frio - RJ', whats: '22995544332' },
-  ]);
-
-  // Estados do Feedback de Prospectos
+  // Estados do Feedback de Prospectos Reais do Supabase
   const [leads, setLeads] = useState<ConvidadoRegistro[]>([]);
   const [carregandoLeads, setCarregandoLeads] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState<string>('todos');
@@ -130,6 +108,7 @@ export default function SalaPage() {
     verificarSessao();
   }, []);
 
+  // Busca EXCLUSIVAMENTE dados reais do banco de dados Supabase
   const carregarLeadsScout = async () => {
     setCarregandoLeads(true);
     try {
@@ -138,6 +117,7 @@ export default function SalaPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
+      // O Gestor visualiza apenas a sua própria carteira real de prospectos
       if (gestor && gestor.slug !== 'master') {
         query = query.eq('gestor_id', gestor.slug || gestor.id);
       }
@@ -145,12 +125,12 @@ export default function SalaPage() {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Erro ao buscar leads:', error);
+        console.error('Erro ao buscar dados reais:', error);
       } else if (data) {
         setLeads(data as ConvidadoRegistro[]);
       }
     } catch (err) {
-      console.error('Erro inesperado:', err);
+      console.error('Erro inesperado no servidor:', err);
     } finally {
       setCarregandoLeads(false);
     }
@@ -178,7 +158,7 @@ export default function SalaPage() {
       .eq('id', id);
 
     if (error) {
-      alert('Erro ao atualizar status do prospecto.');
+      alert('Erro ao atualizar status do prospecto no banco de dados.');
       return;
     }
 
@@ -187,29 +167,6 @@ export default function SalaPage() {
         item.id === id ? { ...item, dados: novosDados } : item
       )
     );
-  };
-
-  const executarMineracaoPorNicho = (nicho: 'transicao' | 'liberais' | 'consumo') => {
-    if (lotesGeradosHoje >= 3) {
-      alert('🔒 Trava de Segurança da Lei das Médias: Você atingiu o limite de 3 lotes diários gerados.');
-      return;
-    }
-
-    setNichoPfSelecionado(nicho);
-    setMinerando(true);
-
-    setTimeout(() => {
-      const regiaoStr = `${municipioSelecionado} - ${estadoSelecionado}`;
-      const baseGerada = [
-        { nome: 'Carlos Eduardo', perfil: 'Transição de Carreira', regiao: regiaoStr, whats: '22998877111' },
-        { nome: 'Beatriz Lima', perfil: 'Open to Work (RH)', regiao: regiaoStr, whats: '22988772222' },
-        { nome: 'Marcelo Santos', perfil: 'Profissional Liberal', regiao: regiaoStr, whats: '22996655333' },
-      ];
-
-      setLeadsMinerados(baseGerada);
-      setLotesGeradosHoje((prev) => prev + 1);
-      setMinerando(false);
-    }, 800);
   };
 
   const linkBaseGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
@@ -233,100 +190,93 @@ export default function SalaPage() {
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: '#050505', color: '#f5f7f8', padding: '18px', fontFamily: 'sans-serif' }}>
-      <div style={{ minHeight: 'calc(100vh - 36px)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '24px', background: 'rgba(8, 10, 10, 0.95)', overflow: 'hidden' }}>
-        
-        {/* Topo / Header */}
-        <header style={{ minHeight: '76px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 26px', borderBottom: '1px solid rgba(255, 255, 255, 0.07)', background: 'rgba(255, 255, 255, 0.015)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(0, 255, 136, 0.42)', borderRadius: '12px', color: '#00ff88', fontWeight: 'bold', fontSize: '11px' }}>CRC</div>
+    <main className="sala-page">
+      <div className="sala-shell">
+        <header className="sala-header">
+          <div className="sala-brand">
+            <div className="sala-brand-mark">CRC</div>
             <div>
-              <div style={{ fontSize: '15px', fontWeight: 'bold', letterSpacing: '2px' }}>SCOUT.CRC</div>
-              <div style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.45)', textTransform: 'uppercase' }}>sala de operações · ambiente operacional</div>
+              <div className="sala-brand-name">SCOUT.CRC</div>
+              <div className="sala-brand-subtitle">
+                sala de operações · ambiente operacional
+              </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               type="button"
-              onClick={() => { window.location.href = '/'; }}
-              style={{ background: 'rgba(0, 255, 136, 0.1)', border: '1px solid rgba(0, 255, 136, 0.35)', color: '#00ff88', padding: '7px 14px', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '10px' }}
+              onClick={() => {
+                window.location.href = '/';
+              }}
+              style={{
+                background: 'rgba(0, 255, 136, 0.1)',
+                border: '1px solid rgba(0, 255, 136, 0.35)',
+                color: '#00ff88',
+                padding: '7px 14px',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '10px',
+                letterSpacing: '1px',
+              }}
             >
               ← VOLTAR AO HALL (CAPA)
             </button>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'rgba(255, 255, 255, 0.45)', fontSize: '10px', fontWeight: 'bold' }}>
+            <div className="sala-header-status">
               {gestor ? (
                 <span>GESTOR · {gestor.nome}</span>
               ) : (
                 <button
                   type="button"
-                  onClick={() => { window.location.href = '/gestor'; }}
-                  style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '10px' }}
+                  className="sala-chave-btn"
+                  onClick={() => {
+                    window.location.href = '/gestor';
+                  }}
                 >
                   🔑 Chave do gestor
                 </button>
               )}
-              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#00ff88', boxShadow: '0 0 14px rgba(0, 255, 136, 0.75)' }} />
+
+              <span className="sala-status-dot" />
               AMBIENTE CRC
             </div>
           </div>
         </header>
 
-        {/* Layout Principal: Menu Lateral + Seção Conteúdo */}
-        <div style={{ display: 'grid', gridTemplateColumns: '260px minmax(0, 1fr)', minHeight: 'calc(100vh - 112px)' }}>
-          
-          {/* Aside / Menu Lateral */}
-          <aside style={{ display: 'flex', flexDirection: 'column', borderRight: '1px solid rgba(255, 255, 255, 0.07)', background: 'rgba(0, 0, 0, 0.3)', padding: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '12px 8px', color: 'rgba(255, 255, 255, 0.42)', fontSize: '9px', letterSpacing: '1px' }}>
+        <div className="sala-layout">
+          {/* Menu Lateral */}
+          <aside className="sala-sidebar">
+            <div className="sala-sidebar-heading">
               <span>AMBIENTES</span>
               <small>ACESSOS</small>
             </div>
 
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <nav className="sala-menu">
               {modulos.map((modulo) => (
-                <div key={modulo.nome}>
+                <div key={modulo.nome} className="sala-menu-group">
                   <button
                     type="button"
+                    className={`sala-menu-item ${moduloAtivo === modulo.nome ? 'active' : ''}`}
                     onClick={() => lidarComCliqueModulo(modulo)}
-                    style={{
-                      width: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      padding: '12px',
-                      background: moduloAtivo === modulo.nome ? 'rgba(0, 255, 136, 0.1)' : 'transparent',
-                      border: moduloAtivo === modulo.nome ? '1px solid rgba(0, 255, 136, 0.3)' : '1px solid transparent',
-                      borderRadius: '12px',
-                      color: '#fff',
-                      cursor: 'pointer',
-                      textAlign: 'left'
-                    }}
                   >
-                    <span>{modulo.icone}</span>
-                    <div style={{ flex: 1 }}>
-                      <strong style={{ display: 'block', fontSize: '12px' }}>{modulo.nome}</strong>
-                      <small style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)' }}>{gestorDesbloqueado ? 'acesso de gestor' : '🔒 restrito'}</small>
-                    </div>
+                    <span className="sala-menu-icon">{modulo.icone}</span>
+                    <span className="sala-menu-copy">
+                      <strong>{modulo.nome}</strong>
+                      <small>{gestorDesbloqueado ? 'acesso de gestor' : '🔒 restrito'}</small>
+                    </span>
+                    <span className="sala-lock">{gestorDesbloqueado ? '✦' : '⌕'}</span>
                   </button>
 
                   {gestorDesbloqueado && modulo.sublinks && moduloAtivo === modulo.nome && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingLeft: '24px', paddingTop: '6px' }}>
+                    <div className="sala-sublinks">
                       {modulo.sublinks.map((sub) => (
                         <button
                           key={sub}
                           type="button"
+                          className={`sala-sublink-btn ${subModuloAtivo === sub ? 'active' : ''}`}
                           onClick={() => setSubModuloAtivo(sub)}
-                          style={{
-                            background: subModuloAtivo === sub ? 'rgba(0, 255, 136, 0.15)' : 'transparent',
-                            border: 'none',
-                            color: subModuloAtivo === sub ? '#00ff88' : 'rgba(255,255,255,0.5)',
-                            fontSize: '11px',
-                            padding: '6px 10px',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            textAlign: 'left'
-                          }}
                         >
                           ↳ {sub}
                         </button>
@@ -337,205 +287,760 @@ export default function SalaPage() {
               ))}
             </nav>
 
-            <div style={{ marginTop: 'auto', padding: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            <div className="sala-sidebar-footer">
               {gestor ? (
                 <>
-                  <span style={{ fontSize: '8px', background: 'rgba(0, 255, 136, 0.2)', color: '#00ff88', padding: '4px 8px', borderRadius: '10px', fontWeight: 'bold' }}>GESTOR DE COMUNIDADE</span>
-                  <strong style={{ display: 'block', marginTop: '8px', fontSize: '13px', color: '#fff' }}>{gestor.nome}</strong>
-                  <p style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', marginTop: '4px' }}>Operação SCOUT ativa com rastreio direto no Supabase.</p>
+                  <span className="sala-visitor-tag">GESTOR DE COMUNIDADE</span>
+                  <strong className="sala-gestor-name">{gestor.nome}</strong>
+                  <p>Operação SCOUT ativa com rastreio direto no Supabase.</p>
                 </>
               ) : (
                 <>
-                  <span style={{ fontSize: '8px', background: 'rgba(255, 255, 255, 0.1)', color: '#fff', padding: '4px 8px', borderRadius: '10px' }}>CONVIDADO</span>
-                  <p style={{ fontSize: '10px', color: 'rgba(255, 255, 255, 0.4)', marginTop: '6px' }}>Aguarde validação do gestor.</p>
+                  <span className="sala-visitor-tag">CONVIDADO</span>
+                  <p>Aguarde a validação do seu gestor para liberar os recursos operacionais.</p>
                 </>
               )}
             </div>
           </aside>
 
-          {/* Área Principal de Trabalho */}
-          <section style={{ padding: '28px', overflowY: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: '20px' }}>
+          {/* Área Central Operacional */}
+          <section className="sala-main">
+            <div className="sala-welcome">
               <div>
-                <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold', letterSpacing: '1px' }}>MÓDULO DE INTELIGÊNCIA</span>
-                <h1 style={{ fontSize: '32px', margin: '4px 0', color: '#fff' }}>Sua Central <span style={{ color: '#00ff88' }}>SCOUT.</span></h1>
-                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Prospecção, atração visual e inteligência de qualificação para o modelo CRC.</p>
+                <div className="sala-eyebrow">MÓDULO DE INTELIGÊNCIA</div>
+                <h1>
+                  Sua Central <span>SCOUT.</span>
+                </h1>
+                <p>
+                  Prospecção, atração visual e inteligência de qualificação para o modelo CRC.
+                </p>
+              </div>
+
+              <div className="sala-welcome-mark">
+                <span>CRC</span>
+                <small>COMUNIDADE · RELAÇÃO · CONSUMO</small>
               </div>
             </div>
 
-            {/* CONTEÚDO DINÂMICO DOS SUBLINKS */}
-            {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
-              <div style={{ background: 'rgba(0, 255, 136, 0.02)', border: '1px solid rgba(0, 255, 136, 0.2)', borderRadius: '20px', padding: '24px' }}>
-                <span style={{ fontSize: '9px', color: '#00ff88', fontWeight: 'bold' }}>SEU SCOUT · LINK 1 (MOTOR DE MINERAÇÃO PF)</span>
-                <h3 style={{ fontSize: '20px', margin: '6px 0', color: '#fff' }}>Prospecto Digital (Mineração Regional Automatizada)</h3>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                  O SCOUT extrai lotes de <strong>20 perfis qualificados por vez</strong> com base no Estado e Município selecionados.
-                </p>
+            <div className="sala-center-viewport">
+              {/* LINK 1 & LINK 2: SANTINHO E CTA DE PROSPECÇÃO */}
+              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && (subModuloAtivo === 'Prospecto Digital' || subModuloAtivo === 'Santinho Digital') && (
+                <div className="sala-dynamic-card">
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK EXCLUSIVO DE CAPTURA</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Santinho Digital & Link do Quiz</h3>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
+                    Utilize o seu link personalizado para divulgar o Quiz de Qualificação. Todos os prospectos que responderem entrarão automaticamente na sua Fila Ativa do Supabase.
+                  </p>
 
-                <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr auto', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(0,255,136,0.3)' }}>
+                    <div style={{ background: '#000', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', textAlign: 'center', padding: '10px' }}>
+                      <span style={{ fontSize: '10px', color: '#00ff88', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>VÍDEO 10s · ATRAÇÃO</span>
+                      <video src="/assets/santinho.mp4" controls style={{ width: '100%', borderRadius: '6px' }} />
+                    </div>
                     <div>
-                      <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '4px' }}>📍 ESTADO:</label>
-                      <select
-                        value={estadoSelecionado}
-                        onChange={(e) => {
-                          const novo = e.target.value;
-                          setEstadoSelecionado(novo);
-                          setMunicipioSelecionado(municipiosPorEstado[novo]?.[0] || '');
-                        }}
-                        style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
-                      >
-                        {Object.keys(municipiosPorEstado).map((uf) => (
-                          <option key={uf} value={uf}>{uf}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '4px' }}>🏙️ MUNICÍPIO / REGIÃO:</label>
-                      <select
-                        value={municipioSelecionado}
-                        onChange={(e) => setMunicipioSelecionado(e.target.value)}
-                        style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
-                      >
-                        {(municipiosPorEstado[estadoSelecionado] || []).map((mun) => (
-                          <option key={mun} value={mun}>{mun}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', display: 'block' }}>LOTES GERADOS HOJE</span>
-                      <strong style={{ fontSize: '14px', color: lotesGeradosHoje >= 3 ? '#ff4d4d' : '#00ff88' }}>{lotesGeradosHoje} / 3 máx</strong>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <button onClick={() => executarMineracaoPorNicho('transicao')} style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : '#fff', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 'bold' }}>
-                      {minerando && nichoPfSelecionado === 'transicao' ? '⚙️ Extraindo...' : '💼 Minerar Transição (LinkedIn)'}
-                    </button>
-                    <button onClick={() => executarMineracaoPorNicho('liberais')} style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : '#fff', border: '1px solid rgba(43,217,255,0.3)', fontWeight: 'bold' }}>
-                      {minerando && nichoPfSelecionado === 'liberais' ? '⚙️ Extraindo...' : '🩺 Minerar Profissionais Liberais'}
-                    </button>
-                    <button onClick={() => executarMineracaoPorNicho('consumo')} style={{ padding: '10px 14px', borderRadius: '10px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : '#fff', border: '1px solid rgba(255,215,0,0.3)', fontWeight: 'bold' }}>
-                      {minerando && nichoPfSelecionado === 'consumo' ? '⚙️ Extraindo...' : '🛒 Minerar Consumo Consciente'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Lista de perfis */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {leadsMinerados.map((lead, idx) => {
-                    const msgSantinho = encodeURIComponent(`Olá ${lead.nome}! Notei seu perfil em ${lead.regiao} (${lead.perfil}). Convidamos você a conhecer o ecossistema CRC. Assista ao vídeo de 10s e conheça nossa comunidade: ${linkBaseGestor}`);
-                    const linkWhatsSantinho = `https://wa.me/55${lead.whats}?text=${msgSantinho}`;
-
-                    return (
-                      <div key={idx} style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '12px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <div>
-                          <strong style={{ color: '#fff', fontSize: '13px' }}>{lead.nome}</strong>
-                          <span style={{ fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '2px 8px', borderRadius: '10px', marginLeft: '8px', fontWeight: 'bold' }}>{lead.regiao}</span>
-                          <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>🎯 <strong>Perfil:</strong> {lead.perfil}</p>
-                        </div>
-
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(linkBaseGestor);
-                              alert('📋 Link do SCOUT copiado com sucesso!');
-                            }}
-                            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', fontWeight: 'bold', fontSize: '11px', padding: '8px 10px', borderRadius: '8px', cursor: 'pointer' }}
-                          >
-                            📋 Copiar Link
-                          </button>
-                          <a
-                            href={linkWhatsSantinho}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ background: '#00ff88', color: '#050505', fontWeight: 'bold', fontSize: '11px', padding: '8px 12px', borderRadius: '8px', textDecoration: 'none' }}
-                          >
-                            📨 Enviar Santinho Digital
-                          </a>
-                        </div>
+                      <strong style={{ fontSize: '14px', color: '#fff', display: 'block', marginBottom: '8px' }}>Seu Link Exclusivo de Atribuição (Gestor):</strong>
+                      <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                        <input
+                          type="text"
+                          readOnly
+                          value={linkBaseGestor}
+                          style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
+                        />
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(linkBaseGestor);
+                            alert('📋 Link exclusivo copiado para a área de transferência!');
+                          }}
+                          style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '12px' }}
+                        >
+                          Copiar Link
+                        </button>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* SUBLINK SANTINHO DIGITAL */}
-            {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Santinho Digital' && (
-              <div style={{ background: 'rgba(0, 255, 136, 0.02)', border: '1px solid rgba(0, 255, 136, 0.2)', borderRadius: '20px', padding: '24px' }}>
-                <span style={{ fontSize: '9px', color: '#00ff88', fontWeight: 'bold' }}>SEU SCOUT · LINK 2</span>
-                <h3 style={{ fontSize: '20px', margin: '6px 0', color: '#fff' }}>Santinho Digital (Vídeo de 10s)</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '12px', marginTop: '16px' }}>
-                  <div style={{ background: '#000', borderRadius: '8px', padding: '10px', textAlign: 'center' }}>
-                    <video src="/assets/santinho.mp4" controls style={{ width: '100%', borderRadius: '6px' }} />
+                      <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>
+                        ID do Gestor Registrado no Banco: <code style={{ color: '#00ff88' }}>{gestor?.slug || 'master'}</code>
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <strong style={{ fontSize: '13px', color: '#fff' }}>Link do seu CTA Exclusivo:</strong>
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                      <input type="text" readOnly value={linkBaseGestor} style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '8px', borderRadius: '8px', color: '#00ff88', fontSize: '11px' }} />
-                      <button onClick={() => navigator.clipboard.writeText(linkBaseGestor)} style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}>
-                        Copiar Link
+                </div>
+              )}
+
+              {/* LINK 3: FEEDBACK DE PROSPECTOS REAIS (SUPABASE) */}
+              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Feedback de Prospectos' && (
+                <div className="sala-dynamic-card">
+                  
+                  <div style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,0,0,0.6))', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '18px 20px', marginBottom: '22px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <span style={{ background: '#00ff88', color: '#050505', padding: '3px 8px', borderRadius: '6px', fontWeight: '900', fontSize: '10px', letterSpacing: '1px' }}>
+                        CENTRAL REAL DE ATENDIMENTO
+                      </span>
+                      <h4 style={{ margin: 0, color: '#fff', fontSize: '15px' }}>
+                        Gestão de Prospectos & Liberação Master
+                      </h4>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5' }}>
+                      Os prospectos listados abaixo preencheram o Quiz pelo seu link exclusivo. Realize o atendimento no X1 e solicite a emissão do Código de Entrada ao <strong>Master (Gilmar)</strong> assim que o cadastro for qualificado.
+                    </p>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '22px' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>TOTAL REAL</span>
+                      <strong style={{ fontSize: '20px', color: '#fff' }}>{totalLeads}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>PENDENTES X1</span>
+                      <strong style={{ fontSize: '20px', color: '#00ff88' }}>{pendentesFila}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>ACOMPANHAMENTO</span>
+                      <strong style={{ fontSize: '20px', color: '#2bd9ff' }}>{acompanhamentoLeads}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,215,0,0.25)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: '#ffd700', letterSpacing: '1px', display: 'block' }}>AGUARDANDO MASTER</span>
+                      <strong style={{ fontSize: '20px', color: '#ffd700' }}>{solicitadosMaster}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.25)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: '#00ff88', letterSpacing: '1px', display: 'block' }}>CÓDIGOS LIBERADOS</span>
+                      <strong style={{ fontSize: '20px', color: '#00ff88' }}>{codigosLiberados}</strong>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <span className="sala-eyebrow" style={{ color: '#00ff88' }}>FILA ATIVA DO SUPABASE</span>
+                      <h3 style={{ fontSize: '18px', margin: '2px 0', color: '#fff' }}>Registros Reais Cadastrados</h3>
+                    </div>
+                    
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => window.print()}
+                        style={{
+                          background: 'rgba(255,255,255,0.08)',
+                          border: '1px solid rgba(255,255,255,0.2)',
+                          color: '#fff',
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                        }}
+                        title="Imprimir Prancheta A4 de Acompanhamento"
+                      >
+                        🖨️ Imprimir / Baixar PDF
+                      </button>
+
+                      <button
+                        onClick={carregarLeadsScout}
+                        style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
+                      >
+                        🔄 Atualizar Fila Real
                       </button>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
 
-            {/* SUBLINK FEEDBACK DE PROSPECTOS */}
-            {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Feedback de Prospectos' && (
-              <div style={{ background: 'rgba(0, 255, 136, 0.02)', border: '1px solid rgba(0, 255, 136, 0.2)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <div>
-                    <span style={{ fontSize: '9px', color: '#00ff88', fontWeight: 'bold' }}>FILA ATIVA DE ATENDIMENTO</span>
-                    <h3 style={{ fontSize: '18px', margin: '2px 0', color: '#fff' }}>Prospectos Qualificados no Quiz</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '20px' }} className="no-print">
+                    <input
+                      type="text"
+                      placeholder="Buscar por nome..."
+                      value={buscaNome}
+                      onChange={(e) => setBuscaNome(e.target.value)}
+                      style={{ background: '#050505', border: '1px solid rgba(255,255,255,0.15)', padding: '10px 14px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="📍 Filtrar por Cidade / Estado..."
+                      value={buscaRegiao}
+                      onChange={(e) => setBuscaRegiao(e.target.value)}
+                      style={{ background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#00ff88', fontSize: '12px' }}
+                    />
+                    <select
+                      value={filtroStatus}
+                      onChange={(e) => setFiltroStatus(e.target.value)}
+                      style={{ background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
+                    >
+                      <option value="todos">Todos os Status</option>
+                      <option value="pendente">Pendentes (Fila Ativa)</option>
+                      <option value="acompanhamento">Em Acompanhamento</option>
+                      <option value="solicitado_master">Aguardando Master</option>
+                      <option value="codigo_liberado">Códigos Liberados</option>
+                      <option value="desqualificado">Desqualificados</option>
+                    </select>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => window.print()} style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.2)', color: '#fff', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                      🖨️ Imprimir / Baixar PDF
-                    </button>
-                    <button onClick={carregarLeadsScout} style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}>
-                      🔄 Atualizar Fila
-                    </button>
-                  </div>
-                </div>
 
-                {carregandoLeads ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: '#00ff88' }}>⚙️ Carregando prospectos...</div>
-                ) : leadsFiltrados.length === 0 ? (
-                  <div style={{ padding: '20px', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>Nenhum prospecto encontrado.</div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {leadsFiltrados.map((item) => {
-                      const convidado = item.dados?.convidado;
-                      const whatsClean = convidado?.whatsapp?.replace(/\D/g, '') || '';
-                      const msgWhats = encodeURIComponent(`Olá ${convidado?.nome || ''}, vi seu feedback no Quiz do SCOUT.CRC! podemos conversar?`);
-                      const linkWhats = `https://wa.me/55${whatsClean}?text=${msgWhats}`;
+                  {carregandoLeads ? (
+                    <div style={{ padding: '40px', textAlign: 'center', color: '#00ff88', fontSize: '12px' }}>
+                      ⚙️ Conectando ao Supabase e buscando registros reais...
+                    </div>
+                  ) : leadsFiltrados.length === 0 ? (
+                    <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.5)', fontSize: '12px', border: '1px dashed rgba(0,255,136,0.2)', borderRadius: '14px', background: 'rgba(0,0,0,0.3)' }}>
+                      <strong style={{ color: '#fff', display: 'block', fontSize: '14px', marginBottom: '6px' }}>Sua fila de prospectos reais está limpa.</strong>
+                      Divulgue seu link exclusivo ou Santinho Digital para capturar novos cadastros diretamente no Quiz.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {leadsFiltrados.map((item) => {
+                        const convidado = item.dados?.convidado;
+                        const whatsClean = convidado?.whatsapp?.replace(/\D/g, '') || '';
+                        const statusAtual = item.dados?.status_aprovacao || 'pendente';
+                        const msgWhats = encodeURIComponent(`Olá ${convidado?.nome || ''}, recebi seu cadastro no Quiz do SCOUT.CRC! Podemos conversar sobre seu objetivo?`);
+                        const linkWhats = `https://wa.me/55${whatsClean}?text=${msgWhats}`;
 
-                      return (
-                        <div key={item.id} style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '12px', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div>
-                            <strong style={{ color: '#fff' }}>{convidado?.nome || 'Convidado Sem Nome'}</strong>
-                            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: '4px 0 0' }}>📱 {convidado?.whatsapp} | 📍 {convidado?.cidade}</p>
+                        return (
+                          <div
+                            key={item.id}
+                            className="lead-card-printable"
+                            style={{
+                              background: 'rgba(0,0,0,0.5)',
+                              border: '1px solid rgba(0,255,136,0.2)',
+                              borderRadius: '14px',
+                              padding: '16px',
+                              display: 'grid',
+                              gridTemplateColumns: '1fr auto',
+                              gap: '14px',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                <strong style={{ color: '#fff', fontSize: '14px' }}>
+                                  {convidado?.nome || 'Convidado Real'}
+                                </strong>
+                                <span style={{ fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '2px 8px', borderRadius: '10px', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 'bold' }}>
+                                  {item.dados?.perfil?.toUpperCase() || 'RESPOSTAS QUIZ'}
+                                </span>
+                                
+                                <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', background: statusAtual === 'codigo_liberado' ? 'rgba(0,255,136,0.2)' : statusAtual === 'solicitado_master' ? 'rgba(255,215,0,0.2)' : statusAtual === 'acompanhamento' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.08)', color: statusAtual === 'codigo_liberado' ? '#00ff88' : statusAtual === 'solicitado_master' ? '#ffd700' : statusAtual === 'acompanhamento' ? '#2bd9ff' : 'rgba(255,255,255,0.6)' }}>
+                                  {statusAtual === 'codigo_liberado' ? `✦ CÓDIGO: ${item.dados.codigo_master || 'ATIVO'}` : statusAtual === 'solicitado_master' ? '🟡 AGUARDANDO CÓDIGO MASTER' : statusAtual === 'acompanhamento' ? '🔵 EM ACOMPANHAMENTO' : '⚪ PENDENTE X1'}
+                                </span>
+                              </div>
+
+                              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'flex', gap: '12px', marginTop: '2px', flexWrap: 'wrap' }}>
+                                <span>📱 {convidado?.whatsapp || 'Sem WhatsApp'}</span>
+                                <span style={{ color: '#00ff88', fontWeight: 'bold' }}>
+                                  📍 {convidado?.cidade || 'Região não informada'}
+                                </span>
+                                <span>📅 {new Date(item.created_at).toLocaleDateString('pt-BR')}</span>
+                              </div>
+
+                              {item.dados?.respostas && (
+                                <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
+                                  <strong>Objetivo Declarado:</strong> {item.dados.respostas['objetivo'] || 'Não especificado'}
+                                </div>
+                              )}
+
+                              <div style={{ marginTop: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }} className="no-print">
+                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', alignSelf: 'center', marginRight: '4px' }}>Classificar X1:</span>
+                                
+                                <button
+                                  onClick={() => atualizarStatusLead(item.id, 'solicitado_master')}
+                                  style={{ background: 'rgba(255,215,0,0.15)', border: '1px solid rgba(255,215,0,0.3)', color: '#ffd700', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                  🟢 Solicitar Código ao Master
+                                </button>
+
+                                <button
+                                  onClick={() => atualizarStatusLead(item.id, 'acompanhamento')}
+                                  style={{ background: 'rgba(43,217,255,0.12)', border: '1px solid rgba(43,217,255,0.3)', color: '#2bd9ff', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                  🔵 Acompanhamento
+                                </button>
+
+                                <button
+                                  onClick={() => atualizarStatusLead(item.id, 'desqualificado')}
+                                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}
+                                >
+                                  🔴 Desqualificar
+                                </button>
+                              </div>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '130px' }} className="no-print">
+                              {whatsClean && (
+                                <a
+                                  href={linkWhats}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    background: '#00ff88',
+                                    color: '#050505',
+                                    fontWeight: 'bold',
+                                    fontSize: '11px',
+                                    padding: '8px 12px',
+                                    borderRadius: '8px',
+                                    textAlign: 'center',
+                                    textDecoration: 'none',
+                                    display: 'block',
+                                  }}
+                                >
+                                  💬 Iniciar X1
+                                </a>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <a href={linkWhats} target="_blank" rel="noopener noreferrer" style={{ background: '#00ff88', color: '#050505', fontWeight: 'bold', fontSize: '11px', padding: '8px 12px', borderRadius: '8px', textDecoration: 'none' }}>
-                              💬 Iniciar X1
-                            </a>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Módulos Gerais */}
+              {gestorDesbloqueado && moduloAtivo && moduloAtivo !== 'Seu SCOUT' && (
+                <div className="sala-dynamic-card">
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>MÓDULO OPERACIONAL</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>{moduloAtivo}</h3>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginTop: '10px' }}>
+                    Ambiente dedicado à gestão de comunidade e diretrizes estratégicas.
+                  </p>
+                </div>
+              )}
+
+              {/* Visual Padrão */}
+              {(!gestorDesbloqueado || !moduloAtivo) && (
+                <div className="sala-hero-art-container">
+                  <div className="sala-art-text">
+                    <span className="sala-eyebrow">REDE DE CONSUMO & GESTÃO</span>
+                    <h2>Conexão, Pertencimento e Escala</h2>
+                    <p>O ecossistema CRC integra tecnologia de ponta, renda recorrente e desenvolvimento colaborativo.</p>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
+            </div>
           </section>
         </div>
+
+        <footer className="sala-footer">
+          <span>SCOUT.CRC</span>
+          <small>Conheça o ambiente. Descubra o seu lugar.</small>
+        </footer>
       </div>
-    </div>
+
+      {/* Modal Restrito */}
+      {moduloRestrito && (
+        <div className="sala-modal-backdrop" onClick={() => setModuloRestrito(null)}>
+          <div className="sala-modal" onClick={(event) => event.stopPropagation()}>
+            <div className="sala-modal-lock">🔒</div>
+            <div className="sala-eyebrow">SALA DE OPERAÇÕES · VALIDAÇÃO PENDENTE</div>
+            <h2>{moduloRestrito.nome}</h2>
+            <p>{moduloRestrito.descricao}</p>
+
+            <div className="sala-modal-message">
+              Bem-vindo à Sala de Operações! Sua solicitação deu entrada no sistema.
+              <br />
+              <strong>Aguarde a validação do seu Gestor de referência para desbloquear este recurso no atendimento X1.</strong>
+            </div>
+
+            <button
+              type="button"
+              className="sala-modal-close"
+              onClick={() => setModuloRestrito(null)}
+            >
+              Compreendido
+            </button>
+          </div>
+        </div>
+      )}
+
+      <style jsx>{`
+        .sala-page {
+          min-height: 100vh;
+          background: radial-gradient(circle at 70% 16%, rgba(0, 255, 136, 0.08), transparent 26%), #050505;
+          color: #f5f7f8;
+          padding: 18px;
+        }
+        .sala-shell {
+          min-height: calc(100vh - 36px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 24px;
+          background: rgba(8, 10, 10, 0.72);
+          box-shadow: 0 30px 100px rgba(0, 0, 0, 0.45);
+          overflow: hidden;
+        }
+        .sala-header {
+          min-height: 76px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 26px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+          background: rgba(255, 255, 255, 0.015);
+        }
+        .sala-brand {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .sala-brand-mark {
+          display: flex;
+          width: 42px;
+          height: 42px;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(0, 255, 136, 0.42);
+          border-radius: 12px;
+          color: #00ff88;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 1px;
+        }
+        .sala-brand-name {
+          font-size: 15px;
+          font-weight: 800;
+          letter-spacing: 2px;
+        }
+        .sala-brand-subtitle {
+          margin-top: 3px;
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 10px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+        }
+        .sala-header-status {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 1.4px;
+        }
+        .sala-chave-btn {
+          background: rgba(0,255,136,0.1);
+          border: 1px solid rgba(0,255,136,0.3);
+          color: #00ff88;
+          padding: 6px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: bold;
+          font-size: 10px;
+        }
+        .sala-status-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #00ff88;
+          box-shadow: 0 0 14px rgba(0, 255, 136, 0.75);
+        }
+        .sala-layout {
+          display: grid;
+          grid-template-columns: 260px minmax(0, 1fr);
+          min-height: calc(100vh - 112px);
+        }
+        .sala-sidebar {
+          display: flex;
+          flex-direction: column;
+          border-right: 1px solid rgba(255, 255, 255, 0.07);
+          background: rgba(0, 0, 0, 0.18);
+        }
+        .sala-sidebar-heading {
+          display: flex;
+          justify-content: space-between;
+          padding: 22px 18px 12px;
+          color: rgba(255, 255, 255, 0.42);
+          font-size: 9px;
+          letter-spacing: 1.7px;
+        }
+        .sala-menu {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          padding: 0 10px;
+        }
+        .sala-menu-group {
+          display: flex;
+          flex-direction: column;
+        }
+        .sala-menu-item {
+          display: grid;
+          grid-template-columns: 30px minmax(0, 1fr) auto;
+          gap: 10px;
+          align-items: center;
+          width: 100%;
+          padding: 12px 10px;
+          color: inherit;
+          text-align: left;
+          background: transparent;
+          border: 1px solid transparent;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .sala-menu-item:hover, .sala-menu-item.active {
+          border-color: rgba(0, 255, 136, 0.25);
+          background: rgba(0, 255, 136, 0.06);
+        }
+        .sala-sublinks {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          padding-left: 36px;
+          padding-top: 4px;
+          padding-bottom: 6px;
+        }
+        .sala-sublink-btn {
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.5);
+          text-align: left;
+          font-size: 11px;
+          padding: 6px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .sala-sublink-btn:hover, .sala-sublink-btn.active {
+          color: #00ff88;
+          background: rgba(0, 255, 136, 0.04);
+        }
+        .sala-menu-icon {
+          display: flex;
+          width: 30px;
+          height: 30px;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 99px;
+          color: rgba(255, 255, 255, 0.55);
+          font-size: 12px;
+        }
+        .sala-menu-copy {
+          display: flex;
+          min-width: 0;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .sala-menu-copy strong {
+          font-size: 12px;
+          font-weight: 700;
+        }
+        .sala-menu-copy small {
+          color: rgba(255, 255, 255, 0.34);
+          font-size: 9px;
+        }
+        .sala-lock {
+          color: rgba(255, 255, 255, 0.28);
+          font-size: 12px;
+        }
+        .sala-sidebar-footer {
+          margin-top: auto;
+          padding: 18px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .sala-visitor-tag {
+          display: inline-flex;
+          padding: 6px 8px;
+          border: 1px solid rgba(0, 255, 136, 0.2);
+          border-radius: 999px;
+          color: #00ff88;
+          font-size: 8px;
+          font-weight: 800;
+          letter-spacing: 1.2px;
+        }
+        .sala-gestor-name {
+          display: block;
+          margin-top: 10px;
+          color: rgba(255, 255, 255, 0.88);
+          font-size: 13px;
+          font-weight: 700;
+        }
+        .sala-sidebar-footer p {
+          margin-top: 10px;
+          color: rgba(255, 255, 255, 0.4);
+          font-size: 10px;
+          line-height: 1.5;
+        }
+        .sala-main {
+          min-width: 0;
+          padding: 28px;
+        }
+        .sala-welcome {
+          display: flex;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 30px;
+          padding-bottom: 24px;
+        }
+        .sala-eyebrow {
+          color: rgba(255, 255, 255, 0.42);
+          font-size: 9px;
+          font-weight: 800;
+          letter-spacing: 1.7px;
+          text-transform: uppercase;
+        }
+        .sala-welcome h1 {
+          max-width: 720px;
+          margin: 8px 0 10px;
+          font-size: clamp(28px, 4vw, 52px);
+          line-height: 0.98;
+          letter-spacing: -1.7px;
+        }
+        .sala-welcome h1 span {
+          color: #00ff88;
+        }
+        .sala-welcome p {
+          max-width: 650px;
+          margin: 0;
+          color: rgba(255, 255, 255, 0.55);
+          font-size: 13px;
+          line-height: 1.65;
+        }
+        .sala-welcome-mark {
+          min-width: 190px;
+          padding: 12px 0 0;
+          text-align: right;
+        }
+        .sala-welcome-mark span {
+          display: block;
+          color: rgba(255, 255, 255, 0.07);
+          font-size: 58px;
+          font-weight: 900;
+          line-height: 0.8;
+          letter-spacing: 5px;
+        }
+        .sala-welcome-mark small {
+          display: block;
+          margin-top: 10px;
+          color: rgba(255, 255, 255, 0.25);
+          font-size: 8px;
+          letter-spacing: 1.3px;
+        }
+        .sala-center-viewport {
+          margin-top: 10px;
+        }
+        .sala-dynamic-card {
+          background: rgba(0, 255, 136, 0.03);
+          border: 1px solid rgba(0, 255, 136, 0.2);
+          border-radius: 20px;
+          padding: 30px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .sala-hero-art-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          background: rgba(255, 255, 255, 0.015);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 20px;
+          padding: 34px;
+        }
+        .sala-art-text h2 {
+          font-size: 22px;
+          margin: 6px 0 10px;
+          color: #fff;
+        }
+        .sala-art-text p {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.5);
+          line-height: 1.6;
+        }
+        .sala-footer {
+          display: flex;
+          justify-content: space-between;
+          padding: 14px 24px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.24);
+          font-size: 8px;
+          letter-spacing: 1.3px;
+          text-transform: uppercase;
+        }
+        .sala-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.76);
+          backdrop-filter: blur(10px);
+        }
+        .sala-modal {
+          width: min(460px, 100%);
+          padding: 30px;
+          border: 1px solid rgba(0, 255, 136, 0.16);
+          border-radius: 22px;
+          background: #0b0f0d;
+          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
+          text-align: center;
+        }
+        .sala-modal-lock {
+          display: flex;
+          width: 48px;
+          height: 48px;
+          margin: 0 auto 18px;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(0, 255, 136, 0.2);
+          border-radius: 15px;
+          color: #00ff88;
+          font-size: 18px;
+        }
+        .sala-modal h2 {
+          margin: 8px 0 10px;
+          font-size: 28px;
+        }
+        .sala-modal p {
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 12px;
+          line-height: 1.5;
+        }
+        .sala-modal-message {
+          margin-top: 18px;
+          padding: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.025);
+          color: rgba(255, 255, 255, 0.46);
+          font-size: 11px;
+          line-height: 1.6;
+        }
+        .sala-modal-message strong {
+          color: #f0f3f3;
+        }
+        .sala-modal-close {
+          width: 100%;
+          margin-top: 18px;
+          padding: 12px 16px;
+          border: 1px solid rgba(0, 255, 136, 0.28);
+          border-radius: 12px;
+          background: rgba(0, 255, 136, 0.06);
+          color: #00ff88;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.9px;
+          cursor: pointer;
+        }
+      `}</style>
+
+      {/* ESTILO DE IMPRESSÃO LIMPO PARA FOLHA A4 */}
+      <style jsx global>{`
+        @media print {
+          body {
+            background: #fff !important;
+            color: #000 !important;
+          }
+          .sala-header, .sala-sidebar, .sala-welcome, .sala-footer, .no-print {
+            display: none !important;
+          }
+          .sala-shell, .sala-main, .sala-dynamic-card {
+            border: none !important;
+            box-shadow: none !important;
+            background: #fff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .lead-card-printable {
+            background: #fff !important;
+            border: 1px solid #ccc !important;
+            color: #000 !important;
+            page-break-inside: avoid;
+            margin-bottom: 10px !important;
+          }
+          .lead-card-printable strong, .lead-card-printable span {
+            color: #000 !important;
+          }
+        }
+      `}</style>
+    </main>
   );
 }
