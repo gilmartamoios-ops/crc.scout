@@ -55,6 +55,13 @@ const modulos: Modulo[] = [
   },
 ];
 
+// Matriz Geográfica dos Estados Brasileiros
+const estadosBrasil = [
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 
+  'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 
+  'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO'
+];
+
 export default function SalaPage() {
   const [moduloAtivo, setModuloAtivo] = useState<string | null>('Seu SCOUT');
   const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Prospecto Digital');
@@ -69,7 +76,12 @@ export default function SalaPage() {
     slug: string | null;
   } | null>(null);
 
-  // Estados do Feedback de Prospectos Reais do Supabase
+  // Estados do Link 1 (Prospecto Digital)
+  const [estadoSelecionado, setEstadoSelecionado] = useState<string>('RJ');
+  const [cidadeDigito, setCidadeDigito] = useState<string>('Cabo Frio');
+  const [nichoPfSelecionado, setNichoPfSelecionado] = useState<'transicao' | 'liberais' | 'consumo'>('transicao');
+
+  // Estados do Feedback de Prospectos Reais (Supabase)
   const [leads, setLeads] = useState<ConvidadoRegistro[]>([]);
   const [carregandoLeads, setCarregandoLeads] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState<string>('todos');
@@ -108,7 +120,6 @@ export default function SalaPage() {
     verificarSessao();
   }, []);
 
-  // Busca EXCLUSIVAMENTE dados reais do banco de dados Supabase
   const carregarLeadsScout = async () => {
     setCarregandoLeads(true);
     try {
@@ -117,7 +128,6 @@ export default function SalaPage() {
         .select('*')
         .order('created_at', { ascending: false });
 
-      // O Gestor visualiza apenas a sua própria carteira real de prospectos
       if (gestor && gestor.slug !== 'master') {
         query = query.eq('gestor_id', gestor.slug || gestor.id);
       }
@@ -130,7 +140,7 @@ export default function SalaPage() {
         setLeads(data as ConvidadoRegistro[]);
       }
     } catch (err) {
-      console.error('Erro inesperado no servidor:', err);
+      console.error('Erro inesperado:', err);
     } finally {
       setCarregandoLeads(false);
     }
@@ -158,7 +168,7 @@ export default function SalaPage() {
       .eq('id', id);
 
     if (error) {
-      alert('Erro ao atualizar status do prospecto no banco de dados.');
+      alert('Erro ao atualizar status do prospecto no banco.');
       return;
     }
 
@@ -206,9 +216,7 @@ export default function SalaPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               type="button"
-              onClick={() => {
-                window.location.href = '/';
-              }}
+              onClick={() => { window.location.href = '/'; }}
               style={{
                 background: 'rgba(0, 255, 136, 0.1)',
                 border: '1px solid rgba(0, 255, 136, 0.35)',
@@ -231,9 +239,7 @@ export default function SalaPage() {
                 <button
                   type="button"
                   className="sala-chave-btn"
-                  onClick={() => {
-                    window.location.href = '/gestor';
-                  }}
+                  onClick={() => { window.location.href = '/gestor'; }}
                 >
                   🔑 Chave do gestor
                 </button>
@@ -323,13 +329,116 @@ export default function SalaPage() {
             </div>
 
             <div className="sala-center-viewport">
-              {/* LINK 1 & LINK 2: SANTINHO E CTA DE PROSPECÇÃO */}
-              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && (subModuloAtivo === 'Prospecto Digital' || subModuloAtivo === 'Santinho Digital') && (
+              
+              {/* SUBLINK 1: PROSPECTO DIGITAL (MOTOR DE ATRAÇÃO REGIONAL) */}
+              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
-                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK EXCLUSIVO DE CAPTURA</span>
-                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Santinho Digital & Link do Quiz</h3>
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1 (DIRECIONAMENTO REGIONAL)</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Direcionamento de Campo)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    Utilize o seu link personalizado para divulgar o Quiz de Qualificação. Todos os prospectos que responderem entrarão automaticamente na sua Fila Ativa do Supabase.
+                    Selecione o Estado e o Município de atuação para direcionar sua atração de convidados aos 3 pilares estratégicos da comunidade.
+                  </p>
+
+                  <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '14px', alignItems: 'center', marginBottom: '18px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>📍 UF / ESTADO:</label>
+                        <select
+                          value={estadoSelecionado}
+                          onChange={(e) => setEstadoSelecionado(e.target.value)}
+                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
+                        >
+                          {estadosBrasil.map((uf) => (
+                            <option key={uf} value={uf}>{uf}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>🏙️ MUNICÍPIO / REGIÃO DE ATUAÇÃO:</label>
+                        <input
+                          type="text"
+                          value={cidadeDigito}
+                          onChange={(e) => setCidadeDigito(e.target.value)}
+                          placeholder="Digite o município (Ex: Cabo Frio, Niterói, Campinas...)"
+                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+
+                    <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', fontWeight: 'bold', marginBottom: '10px' }}>
+                      SELEÇÃO DE PILAR DE ATRAÇÃO PARA {cidadeDigito.toUpperCase()} - {estadoSelecionado}:
+                    </label>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px' }}>
+                      <button
+                        type="button"
+                        onClick={() => setNichoPfSelecionado('transicao')}
+                        style={{ padding: '14px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : '#fff', border: nichoPfSelecionado === 'transicao' ? '1px solid #00ff88' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+                      >
+                        <strong style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>💼 Transição Profissional</strong>
+                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>Para pessoas em busca de autonomia de carreira e novos horizontes.</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setNichoPfSelecionado('liberais')}
+                        style={{ padding: '14px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : '#fff', border: nichoPfSelecionado === 'liberais' ? '1px solid #2bd9ff' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+                      >
+                        <strong style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>🩺 Saúde & Ozonioterapia</strong>
+                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>Para profissionais liberais e interessados em saúde integrativa.</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setNichoPfSelecionado('consumo')}
+                        style={{ padding: '14px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : '#fff', border: nichoPfSelecionado === 'consumo' ? '1px solid #ffd700' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+                      >
+                        <strong style={{ display: 'block', fontSize: '12px', marginBottom: '4px' }}>🛒 Consumo Consciente</strong>
+                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.6)', display: 'block', lineHeight: '1.4' }}>Para famílias focadas em economia doméstica e compra inteligente.</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <span style={{ fontSize: '10px', color: '#00ff88', fontWeight: 'bold' }}>SEU LINK ATIVO COM ATRIBUIÇÃO AUTOMÁTICA</span>
+                      <strong style={{ display: 'block', color: '#fff', fontSize: '13px', marginTop: '4px' }}>
+                        Atração Direcionada: {cidadeDigito} - {estadoSelecionado}
+                      </strong>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(linkBaseGestor);
+                          alert(`📋 Link do Quiz para ${cidadeDigito}-${estadoSelecionado} copiado!`);
+                        }}
+                        style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '10px 14px', borderRadius: '10px', fontWeight: 'bold', fontSize: '11px', cursor: 'pointer' }}
+                      >
+                        📋 Copiar Link do Quiz
+                      </button>
+
+                      <a
+                        href={`https://wa.me/?text=${encodeURIComponent(`Olá! Gostaria de convidar você de ${cidadeDigito} a responder ao nosso Quiz e conhecer a comunidade CRC:${linkBaseGestor}`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ background: '#00ff88', color: '#050505', padding: '10px 16px', borderRadius: '10px', fontWeight: 'bold', fontSize: '11px', textDecoration: 'none' }}
+                      >
+                        📲 Disparar no WhatsApp
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SUBLINK 2: SANTINHO DIGITAL */}
+              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Santinho Digital' && (
+                <div className="sala-dynamic-card">
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 2</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Santinho Digital (Vídeo de 10s)</h3>
+                  <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
+                    Sua assinatura visual com vídeo de alta conversão para atração rápida.
                   </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.5)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(0,255,136,0.3)' }}>
@@ -364,7 +473,7 @@ export default function SalaPage() {
                 </div>
               )}
 
-              {/* LINK 3: FEEDBACK DE PROSPECTOS REAIS (SUPABASE) */}
+              {/* SUBLINK 3: FEEDBACK DE PROSPECTOS REAIS (SUPABASE) */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Feedback de Prospectos' && (
                 <div className="sala-dynamic-card">
                   
