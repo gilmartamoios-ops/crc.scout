@@ -295,7 +295,7 @@ export default function SalaPage() {
     }, 800);
   };
 
-  const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}&nicho=pf`;
+  const linkBaseGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
 
   const totalLeads = leads.length;
   const pendentesFila = leads.filter((l) => (l.dados?.status_aprovacao || 'pendente') === 'pendente').length;
@@ -533,14 +533,14 @@ export default function SalaPage() {
                       ⚡ Lote Ativo Minerado para {municipioSelecionado} - {estadoSelecionado} ({leadsMinerados.length} Perfis Prontos)
                     </h4>
                     <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
-                      💡 Clique em "Iniciar Abordagem X1" para disparar o primeiro contato
+                      💡 Clique em "Enviar Santinho Digital" para disparar a isca de atração
                     </span>
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
                     {leadsMinerados.map((lead, index) => {
-                      const msgW = encodeURIComponent(`Olá ${lead.nome}, notei seu perfil voltado a ${lead.perfil} na região de ${lead.regiao}. Convidamos você para conhecer o modelo CRC.`);
-                      const linkW = `https://wa.me/55${lead.whats}?text=${msgW}`;
+                      const msgSantinho = encodeURIComponent(`Olá ${lead.nome}! Notei seu perfil em ${lead.regiao} (${lead.perfil}). Convidamos você a conhecer o ecossistema CRC. Assista ao vídeo de 10s e conheça nossa comunidade: ${linkBaseGestor}`);
+                      const linkWhatsSantinho = `https://wa.me/55${lead.whats}?text=${msgSantinho}`;
 
                       return (
                         <div
@@ -569,7 +569,7 @@ export default function SalaPage() {
                           </div>
 
                           <a
-                            href={linkW}
+                            href={linkWhatsSantinho}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{
@@ -584,7 +584,7 @@ export default function SalaPage() {
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            💬 Iniciar Abordagem X1
+                            📨 Enviar Santinho Digital
                           </a>
                         </div>
                       );
@@ -613,11 +613,11 @@ export default function SalaPage() {
                         <input
                           type="text"
                           readOnly
-                          value={linkScoutGestor}
+                          value={linkBaseGestor}
                           style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '8px 12px', borderRadius: '8px', color: '#00ff88', fontSize: '11px' }}
                         />
                         <button
-                          onClick={() => navigator.clipboard.writeText(linkScoutGestor)}
+                          onClick={() => navigator.clipboard.writeText(linkBaseGestor)}
                           style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}
                         >
                           Copiar Link
