@@ -56,7 +56,7 @@ const modulos: Modulo[] = [
 
 export default function SalaPage() {
   const [moduloAtivo, setModuloAtivo] = useState<string | null>('Seu SCOUT');
-  const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Feedback de Prospectos');
+  const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Prospecto Digital');
   const [moduloRestrito, setModuloRestrito] = useState<Modulo | null>(null);
   const [gestorDesbloqueado, setGestorDesbloqueado] = useState(false);
 
@@ -67,6 +67,9 @@ export default function SalaPage() {
     email?: string;
     slug: string | null;
   } | null>(null);
+
+  // Estados do Link 1 (Prospecto Digital - Nichos)
+  const [nichoSelecionado, setNichoSelecionado] = useState<'mmn' | 'saude' | 'consumo'>('mmn');
 
   // Estados do Feedback de Prospectos
   const [leads, setLeads] = useState<ConvidadoRegistro[]>([]);
@@ -107,7 +110,6 @@ export default function SalaPage() {
     verificarSessao();
   }, []);
 
-  // Buscar Leads no Supabase
   const carregarLeadsScout = async () => {
     setCarregandoLeads(true);
     try {
@@ -140,7 +142,6 @@ export default function SalaPage() {
     }
   }, [gestorDesbloqueado, moduloAtivo, subModuloAtivo]);
 
-  // Atualização rápida de status do lead na Lei das Médias
   const atualizarStatusLead = async (id: string, novoStatus: 'aprovado' | 'acompanhamento' | 'desqualificado') => {
     const leadAlvo = leads.find((l) => l.id === id);
     if (!leadAlvo) return;
@@ -161,7 +162,6 @@ export default function SalaPage() {
       return;
     }
 
-    // Atualização local imediata no estado
     setLeads((anterior) =>
       anterior.map((item) =>
         item.id === id ? { ...item, dados: novosDados } : item
@@ -169,16 +169,14 @@ export default function SalaPage() {
     );
   };
 
-  const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
+  const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}&nicho=${nichoSelecionado}`;
 
-  // Métricas da Lei das Médias
   const totalLeads = leads.length;
   const pendentesFila = leads.filter((l) => (l.dados?.status_aprovacao || 'pendente') === 'pendente').length;
   const acompanhamentoLeads = leads.filter((l) => l.dados?.status_aprovacao === 'acompanhamento').length;
   const fechadosLeads = leads.filter((l) => l.dados?.status_aprovacao === 'aprovado').length;
   const taxaConversao = totalLeads > 0 ? Math.round((fechadosLeads / totalLeads) * 100) : 0;
 
-  // Filtragem local
   const leadsFiltrados = leads.filter((item) => {
     const nome = item.dados?.convidado?.nome?.toLowerCase() || '';
     const regiao = item.dados?.convidado?.cidade?.toLowerCase() || '';
@@ -325,33 +323,112 @@ export default function SalaPage() {
             </div>
 
             <div className="sala-center-viewport">
-              {/* LINK 1: PROSPECTO DIGITAL */}
+              {/* LINK 1: PROSPECTO DIGITAL COM NICHOS OPERACIONAIS CLICÁVEIS */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1</span>
-                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Motor de Prospecção)</h3>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Motor de Atração por Nicho)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    Automação para superar a primeira grande trava do iniciante: atração e filtragem direcionada para nichos específicos e profissionais de MMN.
+                    Superando a primeira trava do iniciante: selecione abaixo o nicho de atuação para gerar sua estratégia direcionada e link de captação exclusivo.
                   </p>
 
-                  <div style={{ padding: '24px', background: 'rgba(0,0,0,0.5)', borderRadius: '14px', border: '1px solid rgba(0,255,136,0.25)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
-                      <div style={{ padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <span style={{ fontSize: '10px', color: '#00ff88', fontWeight: 'bold' }}>NICHO 1</span>
-                        <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Líderes & MMN</h4>
-                        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Arquitetura de abordagem direcionada a redes e lideranças.</p>
-                      </div>
-                      <div style={{ padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <span style={{ fontSize: '10px', color: '#2bd9ff', fontWeight: 'bold' }}>NICHO 2</span>
-                        <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Profissionais de Saúde/Estética</h4>
-                        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Atração com foco no poder e ciência do Ozônio.</p>
-                      </div>
+                  {/* SELETORES DE NICHO CLICÁVEIS */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+                    
+                    {/* NICHO 1: MMN / LIDERANÇA */}
+                    <button
+                      type="button"
+                      onClick={() => setNichoSelecionado('mmn')}
+                      style={{
+                        padding: '16px',
+                        background: nichoSelecionado === 'mmn' ? 'rgba(0,255,136,0.12)' : 'rgba(255,255,255,0.02)',
+                        borderRadius: '12px',
+                        border: nichoSelecionado === 'mmn' ? '2px solid #00ff88' : '1px solid rgba(255,255,255,0.08)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '10px', color: '#00ff88', fontWeight: 'bold' }}>NICHO 01</span>
+                      <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Líderes & Redes MMN</h4>
+                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Foco em retenção, plano de carreira e transição para comunidades.</p>
+                    </button>
+
+                    {/* NICHO 2: SAÚDE / ESTÉTICA */}
+                    <button
+                      type="button"
+                      onClick={() => setNichoSelecionado('saude')}
+                      style={{
+                        padding: '16px',
+                        background: nichoSelecionado === 'saude' ? 'rgba(43,217,255,0.12)' : 'rgba(255,255,255,0.02)',
+                        borderRadius: '12px',
+                        border: nichoSelecionado === 'saude' ? '2px solid #2bd9ff' : '1px solid rgba(255,255,255,0.08)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '10px', color: '#2bd9ff', fontWeight: 'bold' }}>NICHO 02</span>
+                      <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Saúde, Estética & Ozônio</h4>
+                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Foco na ciência dos produtos, bem-estar e curadoria avançada.</p>
+                    </button>
+
+                    {/* NICHO 3: CONSUMO INTELIGENTE */}
+                    <button
+                      type="button"
+                      onClick={() => setNichoSelecionado('consumo')}
+                      style={{
+                        padding: '16px',
+                        background: nichoSelecionado === 'consumo' ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.02)',
+                        borderRadius: '12px',
+                        border: nichoSelecionado === 'consumo' ? '2px solid #ffd700' : '1px solid rgba(255,255,255,0.08)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <span style={{ fontSize: '10px', color: '#ffd700', fontWeight: 'bold' }}>NICHO 03</span>
+                      <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Consumo Consciente</h4>
+                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Foco em economia doméstica inteligente e qualidade de vida.</p>
+                    </button>
+                  </div>
+
+                  {/* PAINEL DINÂMICO DA ESTRATÉGIA DO NICHO SELECIONADO */}
+                  <div style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <strong style={{ color: '#00ff88', fontSize: '13px' }}>
+                        🎯 ESTRATÉGIA ATIVA: {nichoSelecionado === 'mmn' ? 'LIDERANÇA & MMN' : nichoSelecionado === 'saude' ? 'SAÚDE & ESTÉTICA (OZÔNIO)' : 'CONSUMO INTELIGENTE'}
+                      </strong>
+                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '6px' }}>
+                        ID: {gestor?.slug || 'master'}
+                      </span>
                     </div>
 
-                    <div style={{ padding: '16px', background: 'rgba(0,255,136,0.05)', borderRadius: '10px', border: '1px dashed rgba(0,255,136,0.3)', textAlign: 'center' }}>
-                      <p style={{ fontSize: '12px', color: '#00ff88', margin: 0 }}>
-                        ⚙️ Módulo de Configuração de Tráfego e Filtros de Nicho em estruturação avançada...
-                      </p>
+                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: '1.6' }}>
+                      {nichoSelecionado === 'mmn' && 'Abordagem voltada para profissionais cansados de rotatividade de redes. O argumento central é a construção de uma Comunidade de Relacionamento de Consumo (CRC) sustentável, com retenção real baseada em pertencimento e não apenas em promessas de ganho rápido.'}
+                      {nichoSelecionado === 'saude' && 'Abordagem voltada para profissionais de estética e saúde que desejam agregar valor científico aos seus clientes através das linhas de ozonioterapia e suplementação de alta performance da Ozonteck.'}
+                      {nichoSelecionado === 'consumo' && 'Abordagem voltada para famílias e indivíduos que buscam otimizar o orçamento mensal transformando o consumo diário obrigatório em fonte de valor e participação na comunidade.'}
+                    </p>
+
+                    {/* LINK DE CAPTAÇÃO EXCLUSIVO PARA O NICHO */}
+                    <div style={{ marginTop: '6px' }}>
+                      <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px' }}>
+                        LINK DE CAPTAÇÃO EXCLUSIVO PARA ESTE NICHO:
+                      </label>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          type="text"
+                          readOnly
+                          value={linkScoutGestor}
+                          style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '8px', color: '#00ff88', fontSize: '11px' }}
+                        />
+                        <button
+                          onClick={() => navigator.clipboard.writeText(linkScoutGestor)}
+                          style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}
+                        >
+                          Copiar Link
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -377,11 +454,11 @@ export default function SalaPage() {
                         <input
                           type="text"
                           readOnly
-                          value={linkScoutGestor}
+                          value={`https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`}
                           style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '8px 12px', borderRadius: '8px', color: '#00ff88', fontSize: '11px' }}
                         />
                         <button
-                          onClick={() => navigator.clipboard.writeText(linkScoutGestor)}
+                          onClick={() => navigator.clipboard.writeText(`https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`)}
                           style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}
                         >
                           Copiar Link
@@ -395,11 +472,10 @@ export default function SalaPage() {
                 </div>
               )}
 
-              {/* LINK 3: FEEDBACK DE PROSPECTOS COM CONCEITO "LEI DAS MÉDIAS" */}
+              {/* LINK 3: FEEDBACK DE PROSPECTOS */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Feedback de Prospectos' && (
                 <div className="sala-dynamic-card">
                   
-                  {/* MANIFESTO EDUCATIVO DA LEI DAS MÉDIAS */}
                   <div style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,0,0,0.6))', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '18px 20px', marginBottom: '22px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                       <span style={{ background: '#00ff88', color: '#050505', padding: '3px 8px', borderRadius: '6px', fontWeight: '900', fontSize: '10px', letterSpacing: '1px' }}>
@@ -414,7 +490,6 @@ export default function SalaPage() {
                     </p>
                   </div>
 
-                  {/* DASHBOARD DE MÉTRICAS DA LEI DAS MÉDIAS */}
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '22px' }}>
                     <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
                       <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>LOTE ATIVO (MÁX 5)</span>
@@ -447,7 +522,6 @@ export default function SalaPage() {
                     </button>
                   </div>
 
-                  {/* BARRA DE FILTROS TRIPLE (NOME, REGIÃO, STATUS) */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '20px' }}>
                     <input
                       type="text"
@@ -516,7 +590,6 @@ export default function SalaPage() {
                                   {item.dados?.perfil?.toUpperCase() || 'RESPOSTAS QUIZ'}
                                 </span>
                                 
-                                {/* Tag de Status do Lead */}
                                 <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', background: statusAtual === 'aprovado' ? 'rgba(0,255,136,0.2)' : statusAtual === 'acompanhamento' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.08)', color: statusAtual === 'aprovado' ? '#00ff88' : statusAtual === 'acompanhamento' ? '#2bd9ff' : 'rgba(255,255,255,0.6)' }}>
                                   {statusAtual === 'aprovado' ? '🟢 FECHADO' : statusAtual === 'acompanhamento' ? '🟡 ACOMPANHAMENTO' : '⚪ PENDENTE X1'}
                                 </span>
@@ -536,7 +609,6 @@ export default function SalaPage() {
                                 </div>
                               )}
 
-                              {/* AÇÕES DA LEI DAS MÉDIAS (CLASSIFICAR STATUS) */}
                               <div style={{ marginTop: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                 <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', alignSelf: 'center', marginRight: '4px' }}>Classificar X1:</span>
                                 <button
