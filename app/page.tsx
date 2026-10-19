@@ -252,15 +252,16 @@ export default function LandingPage() {
           </div>
         </header>
 
+        {/* ETAPA 1: SANTINHO DIGITAL */}
         {etapa === 1 && (
           <section className="scout-hero" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '10px 10px 20px 10px' }}>
-            <div style={{ maxWidth: '340px', width: '100%', display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
+            <div style={{ maxWidth: '340px', width: '100%', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
               
               <span style={{ fontSize: '10px', fontWeight: 800, letterSpacing: '2px', color: '#00ff88', background: 'rgba(0,255,136,0.1)', padding: '6px 14px', borderRadius: '20px', border: '1px solid rgba(0,255,136,0.25)' }}>
                 SANTINHO DIGITAL · RISCO ZERO
               </span>
 
-              <div style={{ width: '100%', aspectRatio: '9/16', maxHeight: '420px', background: '#000', borderRadius: '18px', overflow: 'hidden', border: '2px solid rgba(0,255,136,0.5)', boxShadow: '0 0 35px rgba(0,255,136,0.25)', position: 'relative' }}>
+              <div style={{ width: '100%', aspectRatio: '9/16', maxHeight: '55vh', background: '#000', borderRadius: '18px', overflow: 'hidden', border: '2px solid rgba(0,255,136,0.5)', boxShadow: '0 0 35px rgba(0,255,136,0.25)', position: 'relative' }}>
                 <video
                   ref={santinhoVideoRef}
                   src="/assets/santinho.mp4"
@@ -301,7 +302,7 @@ export default function LandingPage() {
               <button
                 type="button"
                 onClick={() => setEtapa(2)}
-                style={{ width: '100%', padding: '16px', background: '#00ff88', color: '#050505', fontWeight: 900, fontSize: '13px', borderRadius: '14px', border: 'none', letterSpacing: '1px', cursor: 'pointer', boxShadow: '0 0 25px rgba(0,255,136,0.4)' }}
+                className="btn-destaque-neon"
               >
                 ENTRAR NO SCOUT ➔
               </button>
@@ -313,18 +314,20 @@ export default function LandingPage() {
           </section>
         )}
 
+        {/* ETAPA 2: MINI APN (OTIMIZADO PARA CELULAR) */}
         {etapa === 2 && (
-          <section className="scout-content">
-            <div className="scout-section-intro">
-              <div className="scout-eyebrow">AGORA VOCÊ PODE CONHECER</div>
-              <h2 className="scout-section-title">O conceito por trás do CRC.</h2>
-              <p className="scout-section-text">
-                Antes das perguntas, veja a ideia que sustenta essa proposta. Depois você decide se quer continuar.
-              </p>
+          <section className="scout-content" style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div className="scout-section-intro" style={{ textAlign: 'center' }}>
+              <div className="scout-eyebrow" style={{ color: '#00ff88', fontSize: '10px', letterSpacing: '1.5px' }}>
+                AGORA VOCÊ PODE CONHECER
+              </div>
+              <h2 className="scout-section-title" style={{ fontSize: '18px', margin: '4px 0' }}>
+                O conceito por trás do CRC.
+              </h2>
             </div>
 
-            <div className="scout-video-card">
-              <div className="scout-video-frame">
+            <div className="scout-video-card" style={{ width: '100%', maxWidth: '420px', margin: '0 auto' }}>
+              <div className="scout-video-frame" style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', background: '#000' }}>
                 <video
                   ref={videoRef}
                   controls
@@ -334,23 +337,35 @@ export default function LandingPage() {
                   className="scout-video"
                   src="/assets/miniAPN.mp4"
                   onEnded={handleVideoEnded}
+                  style={{ width: '100%', maxHeight: '42vh', objectFit: 'contain', display: 'block' }}
                 >
                   Seu navegador não suporta a reprodução deste vídeo.
                 </video>
               </div>
             </div>
 
-            <div className="scout-choice-row">
-              <button type="button" className="scout-link-button" onClick={() => setEtapa(1)}>
-                ← Voltar
+            {/* BOTÕES PADRONIZADOS COM ALTO DESTAQUE */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%', maxWidth: '420px', margin: '0 auto' }}>
+              <button 
+                type="button" 
+                className="btn-destaque-neon"
+                onClick={() => setEtapa(2.5)}
+              >
+                QUERO EXPERIMENTAR ➔
               </button>
-              <button type="button" className="scout-primary-button" onClick={() => setEtapa(2.5)}>
-                Agora quero experimentar →
+
+              <button 
+                type="button" 
+                className="btn-voltar-sutil"
+                onClick={() => setEtapa(1)}
+              >
+                ← Voltar
               </button>
             </div>
           </section>
         )}
 
+        {/* ETAPA 2.5: EXPERIMENTE / SIMULADOR */}
         {etapa === 2.5 && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-section-intro">
@@ -367,7 +382,7 @@ export default function LandingPage() {
                 className="scout-profile-card scout-profile-card-featured scout-simulator-cta"
                 style={{
                   display: "block",
-                  padding: "28px",
+                  padding: "24px",
                   border: "2px solid rgba(67, 219, 232, 0.55)",
                   borderRadius: "18px",
                   background: "linear-gradient(135deg, rgba(67, 219, 232, 0.12), rgba(255, 255, 255, 0.03))",
@@ -380,20 +395,20 @@ export default function LandingPage() {
                   <span className="scout-profile-tag">SIMULADOR</span>
                   <strong>Descubra como funciona</strong>
                   <small>Faça uma simulação e veja, na prática, como essa possibilidade pode funcionar para você.</small>
-                  <span className="scout-simulator-cta-action">
-                    <span>ABRIR SIMULADOR</span>
-                    <span>→</span>
+                  <span className="scout-simulator-cta-action" style={{ marginTop: '12px' }}>
+                    <span style={{ fontWeight: 800, color: '#2bd9ff' }}>ABRIR SIMULADOR ➔</span>
                   </span>
                 </div>
               </a>
             </div>
 
-            <button type="button" className="scout-link-button" onClick={() => setEtapa(2)}>
+            <button type="button" className="btn-voltar-sutil" onClick={() => setEtapa(2)} style={{ marginTop: '12px' }}>
               ← Voltar ao vídeo
             </button>
           </section>
         )}
 
+        {/* ETAPAS 3 A 6: QUIZ DE QUALIFICAÇÃO */}
         {etapa >= 3 && etapa <= 6 && perguntaAtual && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-progress-head">
@@ -428,23 +443,25 @@ export default function LandingPage() {
                 })}
               </div>
 
-              <button
-                type="button"
-                className="scout-button scout-button-primary scout-form-button"
-                disabled={!respostaAtual}
-                onClick={continuarPergunta}
-              >
-                {etapa === 6 ? 'Entrar na sala' : 'Continuar'}
-                <span>→</span>
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
+                <button
+                  type="button"
+                  className="btn-destaque-neon"
+                  disabled={!respostaAtual}
+                  onClick={continuarPergunta}
+                >
+                  {etapa === 6 ? 'ENTRAR NA SALA ➔' : 'CONTINUAR ➔'}
+                </button>
 
-              <button type="button" className="scout-link-button" onClick={voltar}>
-                ← Voltar
-              </button>
+                <button type="button" className="btn-voltar-sutil" onClick={voltar}>
+                  ← Voltar
+                </button>
+              </div>
             </div>
           </section>
         )}
 
+        {/* ETAPA 7: SELEÇÃO DE PERFIL */}
         {etapa === 7 && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-section-intro">
@@ -476,12 +493,13 @@ export default function LandingPage() {
               </button>
             </div>
 
-            <button type="button" className="scout-link-button" onClick={voltar}>
+            <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '14px' }}>
               ← Voltar
             </button>
           </section>
         )}
 
+        {/* ETAPA 8: FORMULÁRIO DE CADASTRO */}
         {etapa === 8 && !enviado && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-section-intro">
@@ -525,18 +543,18 @@ export default function LandingPage() {
 
               {erro && <div className="scout-error">{erro}</div>}
 
-              <button type="submit" className="scout-button scout-button-primary scout-form-button" disabled={carregando}>
-                {carregando ? 'Registrando...' : 'Concluir e avançar'}
-                {!carregando && <span>→</span>}
+              <button type="submit" className="btn-destaque-neon" disabled={carregando} style={{ marginTop: '10px' }}>
+                {carregando ? 'REGISTRANDO...' : 'CONCLUIR E AVANÇAR ➔'}
               </button>
             </form>
 
-            <button type="button" className="scout-link-button" onClick={voltar}>
+            <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '12px' }}>
               ← Voltar
             </button>
           </section>
         )}
 
+        {/* ETAPA 9: SUCESSO */}
         {etapa === 9 && enviado && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-success">
@@ -553,6 +571,57 @@ export default function LandingPage() {
           <small>Conheça primeiro. Decida depois.</small>
         </footer>
       </div>
+
+      {/* ESTILOS ESPECÍFICOS PARA OS BOTÕES E OTIMIZAÇÃO MOBILE */}
+      <style jsx>{`
+        .btn-destaque-neon {
+          width: 100%;
+          padding: 16px;
+          background: #00ff88;
+          color: #050505;
+          font-weight: 900;
+          font-size: 13px;
+          border-radius: 14px;
+          border: none;
+          letter-spacing: 1px;
+          cursor: pointer;
+          box-shadow: 0 0 25px rgba(0, 255, 136, 0.35);
+          transition: all 0.2s ease;
+          text-align: center;
+        }
+
+        .btn-destaque-neon:hover {
+          background: #26ff97;
+          box-shadow: 0 0 35px rgba(0, 255, 136, 0.55);
+          transform: translateY(-1px);
+        }
+
+        .btn-destaque-neon:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+          box-shadow: none;
+        }
+
+        .btn-voltar-sutil {
+          width: 100%;
+          padding: 12px;
+          background: rgba(255, 255, 255, 0.03);
+          color: rgba(255, 255, 255, 0.6);
+          font-weight: 600;
+          font-size: 12px;
+          border-radius: 12px;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          cursor: pointer;
+          transition: all 0.2s ease;
+          text-align: center;
+        }
+
+        .btn-voltar-sutil:hover {
+          color: #fff;
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(255, 255, 255, 0.25);
+        }
+      `}</style>
     </main>
   );
 }
