@@ -8,9 +8,6 @@ type Perfil = 'gestor' | 'cliente' | 'ambos' | '';
 
 interface Respostas {
   objetivo: string;
-  interesse: string;
-  disponibilidade: string;
-  experiencia: string;
 }
 
 export default function LandingPage() {
@@ -19,9 +16,6 @@ export default function LandingPage() {
 
   const [respostas, setRespostas] = useState<Respostas>({
     objetivo: '',
-    interesse: '',
-    disponibilidade: '',
-    experiencia: '',
   });
 
   const [perfil, setPerfil] = useState<Perfil>('');
@@ -37,53 +31,23 @@ export default function LandingPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const santinhoVideoRef = useRef<HTMLVideoElement | null>(null);
 
+  // PERGUNTAS DO QUIZ ATUALIZADAS PARA AS 3 FRENTES REAIS (FLUXO ENXUTO)
   const perguntas = useMemo(
     () => [
       {
         id: 'objetivo' as const,
-        titulo: 'O que despertou seu interesse em conhecer o CRC?',
+        titulo: 'Qual é o seu objetivo principal no momento atual?',
         opcoes: [
-          'Quero otimizar meu consumo',
-          'Quero conhecer uma nova possibilidade de negócio',
-          'Quero construir uma comunidade',
-          'Quero apenas conhecer os produtos',
-        ],
-      },
-      {
-        id: 'interesse' as const,
-        titulo: 'Qual destas possibilidades mais combina com você?',
-        opcoes: [
-          'Participar como consumidor',
-          'Construir uma comunidade de gestores',
-          'Desenvolver as duas possibilidades',
-          'Ainda não sei',
-        ],
-      },
-      {
-        id: 'disponibilidade' as const,
-        titulo: 'Quanto tempo você teria para desenvolver uma comunidade?',
-        opcoes: [
-          'Poucas horas por semana',
-          'Algumas horas por dia',
-          'Tenho bastante disponibilidade',
-          'Ainda não sei',
-        ],
-      },
-      {
-        id: 'experiencia' as const,
-        titulo: 'Como você se considera em relação a relacionamento e gestão de pessoas?',
-        opcoes: [
-          'Tenho facilidade para me relacionar',
-          'Já lidero ou coordeno pessoas',
-          'Estou começando a desenvolver essa habilidade',
-          'Prefiro conhecer primeiro',
+          'Transição Profissional & Autonomia de Carreira',
+          'Saúde Integrativa, Bem-estar & Ozonioterapia',
+          'Consumo Consciente & Economia Doméstica',
         ],
       },
     ],
     []
   );
 
-  const indicePergunta = etapa >= 3 && etapa <= 6 ? etapa - 3 : -1;
+  const indicePergunta = etapa >= 3 && etapa <= 3 ? etapa - 3 : -1;
   const perguntaAtual = indicePergunta >= 0 ? perguntas[indicePergunta] : null;
   const respostaAtual = perguntaAtual ? respostas[perguntaAtual.id] : '';
 
@@ -119,41 +83,8 @@ export default function LandingPage() {
   const continuarPergunta = async () => {
     if (!perguntaAtual || !respostaAtual) return;
 
-    if (etapa < 6) {
-      setEtapa((anterior) => anterior + 1);
-      return;
-    }
-
-    const registro = {
-      gestor_id: gestorId,
-      tipo: 'convidado',
-      titulo: 'Jornada SCOUT concluída (Quiz)',
-      descricao: 'Convidado concluiu o quiz e entrou na Sala de Operações',
-      dados: {
-        convidado: {
-          nome: nome.trim() || 'Não informado',
-          whatsapp: whatsapp.trim() || 'Não informado',
-          email: '',
-        },
-        perfil: '',
-        respostas: {
-          ...respostas,
-          [perguntaAtual.id]: respostaAtual,
-        },
-        origem: 'scout-hall',
-        etapa: 'sala',
-        data_entrada_sala: new Date().toISOString(),
-      },
-    };
-
-    const { error } = await supabase.from('scout_registros').insert(registro);
-
-    if (error) {
-      alert(`ERRO SUPABASE: ${error.message}`);
-      return;
-    }
-
-    window.location.href = '/sala';
+    // Como o Quiz agora tem apenas 1 pergunta principal na etapa 3, ao avançar já vamos direto para a etapa de cadastro (etapa 8)
+    setEtapa(8);
   };
 
   const selecionarPerfil = (valor: Perfil) => {
@@ -169,13 +100,8 @@ export default function LandingPage() {
     event.preventDefault();
     setErro('');
 
-    if (!nome.trim() || !whatsapp.trim()) {
-      setErro('Informe seu nome e WhatsApp para concluir.');
-      return;
-    }
-
-    if (!consentimento) {
-      setErro('Para concluir seu cadastro no SCOUT, é necessário autorizar o uso dos dados.');
+    if (!nome.trim() || !whatsapp.trim() || !cidade.trim()) {
+      setErro('Informe seu nome, cidade e WhatsApp para concluir.');
       return;
     }
 
@@ -185,19 +111,28 @@ export default function LandingPage() {
       nome: nome.trim(),
       whatsapp: whatsapp.trim(),
       cidade: cidade.trim(),
-      perfil,
+      perfil: respostas.objetivo,
       respostas,
-      consentimento,
+      consentimento: true,
       data_consentimento: new Date().toISOString(),
       origem: 'scout-hall',
     };
 
     const { error } = await supabase.from('scout_registros').insert({
-      tipo: 'convidado',
-      gestor_id: gestorId,
-      titulo: 'Novo convidado SCOUT',
-      descricao: `Cadastro concluído por ${nome.trim()}`,
-      dados: convidado,
+      tipo: 'quiz_prospecto',
+      gestor_id: gestorId || 'master',
+      titulo: `Lead Quiz: ${respostas.objetivo}`,
+      dados: {
+        convidado: {
+          nome: nome.trim(),
+          whatsapp: whatsapp.trim(),
+          cidade: cidade.trim(),
+        },
+        perfil: respostas.objetivo,
+        respostas,
+        status_aprovacao: 'pendente',
+        origem: 'quiz_publico',
+      },
     });
 
     if (error) {
@@ -212,16 +147,13 @@ export default function LandingPage() {
   };
 
   const voltar = () => {
-    if (etapa >= 3 && etapa <= 6) {
-      setEtapa((anterior) => anterior - 1);
-      return;
-    }
-    if (etapa === 7) {
-      setEtapa(6);
+    if (etapa === 3) {
+      setEtapa(2.5);
       return;
     }
     if (etapa === 8) {
-      setEtapa(7);
+      setEtapa(3);
+      return;
     }
   };
 
@@ -314,7 +246,7 @@ export default function LandingPage() {
           </section>
         )}
 
-        {/* ETAPA 2: MINI APN (CORRIGIDO PARA CABER NA TELA MOBILE) */}
+        {/* ETAPA 2: MINI APN */}
         {etapa === 2 && (
           <section className="scout-content" style={{ padding: '10px 16px', display: 'flex', flexDirection: 'column', gap: '8px', height: 'calc(100vh - 80px)', justifyContent: 'space-between' }}>
             <div className="scout-section-intro" style={{ textAlign: 'center', marginBottom: '0' }}>
@@ -326,7 +258,6 @@ export default function LandingPage() {
               </h2>
             </div>
 
-            {/* Contêiner do vídeo otimizado */}
             <div className="scout-video-card" style={{ width: '100%', maxWidth: '320px', margin: '0 auto', flex: '1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               <div className="scout-video-frame" style={{ borderRadius: '14px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', background: '#000', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <video
@@ -338,20 +269,19 @@ export default function LandingPage() {
                   className="scout-video"
                   src="/assets/miniAPN.mp4"
                   onEnded={handleVideoEnded}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} // object-fit: cover resolve o subdimensionamento
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 >
                   Seu navegador não suporta a reprodução deste vídeo.
                 </video>
               </div>
             </div>
 
-            {/* ÁREA DE BOTÕES COMPACTADA */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', maxWidth: '320px', margin: '0 auto', paddingTop: '8px' }}>
               <button 
                 type="button" 
                 className="btn-destaque-neon"
                 onClick={() => setEtapa(2.5)}
-                style={{ padding: '14px' }} // Botão ligeiramente mais compacto
+                style={{ padding: '14px' }}
               >
                 QUERO EXPERIMENTAR ➔
               </button>
@@ -360,7 +290,7 @@ export default function LandingPage() {
                 type="button" 
                 className="btn-voltar-sutil"
                 onClick={() => setEtapa(1)}
-                style={{ padding: '10px' }} // Botão ligeiramente mais compacto
+                style={{ padding: '10px' }}
               >
                 ← Voltar
               </button>
@@ -375,34 +305,18 @@ export default function LandingPage() {
               <div className="scout-eyebrow">PRÓXIMA ETAPA</div>
               <h2 className="scout-section-title">Agora experimente.</h2>
               <p className="scout-section-text">
-                Você acabou de conhecer o conceito. Agora pode experimentar na prática uma das possibilidades do CRC.
+                Você acabou de conhecer o conceito. Agora responda ao nosso Quiz rápido para alinhar seu objetivo.
               </p>
             </div>
 
-            <div className="scout-profile-options">
-              <a
-                href="https://simuladorprosff.vercel.app/"
-                className="scout-profile-card scout-profile-card-featured scout-simulator-cta"
-                style={{
-                  display: "block",
-                  padding: "24px",
-                  border: "2px solid rgba(67, 219, 232, 0.55)",
-                  borderRadius: "18px",
-                  background: "linear-gradient(135deg, rgba(67, 219, 232, 0.12), rgba(255, 255, 255, 0.03))",
-                  boxShadow: "0 0 30px rgba(67, 219, 232, 0.12)",
-                  textDecoration: "none",
-                  cursor: "pointer",
-                }}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button
+                type="button"
+                className="btn-destaque-neon"
+                onClick={() => setEtapa(3)}
               >
-                <div className="scout-simulator-cta-content">
-                  <span className="scout-profile-tag">SIMULADOR</span>
-                  <strong>Descubra como funciona</strong>
-                  <small>Faça uma simulação e veja, na prática, como essa possibilidade pode funcionar para você.</small>
-                  <span className="scout-simulator-cta-action" style={{ marginTop: '12px' }}>
-                    <span style={{ fontWeight: 800, color: '#2bd9ff' }}>ABRIR SIMULADOR ➔</span>
-                  </span>
-                </div>
-              </a>
+                RESPONDER AO QUIZ DE OBJETIVO ➔
+              </button>
             </div>
 
             <button type="button" className="btn-voltar-sutil" onClick={() => setEtapa(2)} style={{ marginTop: '12px' }}>
@@ -411,16 +325,16 @@ export default function LandingPage() {
           </section>
         )}
 
-        {/* ETAPAS 3 A 6: QUIZ DE QUALIFICAÇÃO */}
-        {etapa >= 3 && etapa <= 6 && perguntaAtual && (
+        {/* ETAPA 3: QUIZ DE PERFIL ENXUTO (1 ÚNICA PERGUNTAN PRINCIPAL) */}
+        {etapa === 3 && perguntaAtual && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-progress-head">
-              <span>CONHECENDO SEU PERFIL</span>
-              <strong>{indicePergunta + 1}/{perguntas.length}</strong>
+              <span>QUALIFICAÇÃO CRC</span>
+              <strong>1/1</strong>
             </div>
 
             <div className="scout-progress">
-              <div className="scout-progress-bar" style={{ width: `${((indicePergunta + 1) / perguntas.length) * 100}%` }} />
+              <div className="scout-progress-bar" style={{ width: '100%' }} />
             </div>
 
             <div className="scout-question-card">
@@ -453,7 +367,7 @@ export default function LandingPage() {
                   disabled={!respostaAtual}
                   onClick={continuarPergunta}
                 >
-                  {etapa === 6 ? 'ENTRAR NA SALA ➔' : 'CONTINUAR ➔'}
+                  CONTINUAR PARA CONTATO ➔
                 </button>
 
                 <button type="button" className="btn-voltar-sutil" onClick={voltar}>
@@ -464,94 +378,48 @@ export default function LandingPage() {
           </section>
         )}
 
-        {/* ETAPA 7: SELEÇÃO DE PERFIL */}
-        {etapa === 7 && (
-          <section className="scout-content scout-content-narrow">
-            <div className="scout-section-intro">
-              <div className="scout-eyebrow">ÚLTIMO PASSO</div>
-              <h2 className="scout-section-title">O que você gostaria de conhecer primeiro?</h2>
-              <p className="scout-section-text">Não existe resposta certa. Essa escolha orienta sua jornada.</p>
-            </div>
-
-            <div className="scout-profile-options">
-              <button type="button" className="scout-profile-card scout-profile-card-featured" onClick={() => selecionarPerfil('gestor')}>
-                <span className="scout-profile-tag">COMUNIDADE</span>
-                <strong>Conhecer a construção de uma comunidade</strong>
-                <small>Quero entender o papel do gestor dentro do CRC.</small>
-                <span className="scout-card-arrow">→</span>
-              </button>
-
-              <button type="button" className="scout-profile-card" onClick={() => selecionarPerfil('cliente')}>
-                <span className="scout-profile-tag">CONSUMO</span>
-                <strong>Conhecer os produtos</strong>
-                <small>Meu principal interesse é o consumo.</small>
-                <span className="scout-card-arrow">→</span>
-              </button>
-
-              <button type="button" className="scout-profile-card" onClick={() => selecionarPerfil('ambos')}>
-                <span className="scout-profile-tag">OS DOIS</span>
-                <strong>Conhecer consumo e comunidade</strong>
-                <small>Quero compreender as duas possibilidades.</small>
-                <span className="scout-card-arrow">→</span>
-              </button>
-            </div>
-
-            <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '14px' }}>
-              ← Voltar
-            </button>
-          </section>
-        )}
-
-        {/* ETAPA 8: FORMULÁRIO DE CADASTRO */}
+        {/* ETAPA 8: FORMULÁRIO DE CADASTRO FINAL (SEM E-MAIL, APENAS DADOS DIRETOS) */}
         {etapa === 8 && !enviado && (
           <section className="scout-content scout-content-narrow">
             <div className="scout-section-intro">
               <div className="scout-eyebrow">CONCLUIR JORNADA</div>
-              <h2 className="scout-section-title">Quer continuar sua jornada no CRC?</h2>
-              <p className="scout-section-text">Deixe seus dados para registrar sua jornada no SCOUT.</p>
+              <h2 className="scout-section-title">Seus dados para contato direto:</h2>
+              <p className="scout-section-text">Para que o gestor responsável possa falar com você.</p>
             </div>
 
             <form className="scout-form" onSubmit={handleSubmit}>
               <input
                 type="text"
-                placeholder="Seu nome"
+                placeholder="Seu nome completo"
                 value={nome}
                 onChange={(event) => setNome(event.target.value)}
                 required
               />
 
               <input
+                type="text"
+                placeholder="Cidade / Estado (Ex: Cabo Frio - RJ)"
+                value={cidade}
+                onChange={(event) => setCidade(event.target.value)}
+                required
+              />
+
+              <input
                 type="tel"
-                placeholder="WhatsApp com DDD"
+                placeholder="WhatsApp com DDD (Ex: 22997788554)"
                 value={whatsapp}
                 onChange={(event) => setWhatsapp(event.target.value)}
                 required
               />
 
-              <input
-                type="text"
-                placeholder="Cidade / Estado (opcional)"
-                value={cidade}
-                onChange={(event) => setCidade(event.target.value)}
-              />
-
-              <label className="scout-consent">
-                <input
-                  type="checkbox"
-                  checked={consentimento}
-                  onChange={(event) => setConsentimento(event.target.checked)}
-                />
-                <span>Autorizo o uso dos dados informados para esta finalidade.</span>
-              </label>
-
               {erro && <div className="scout-error">{erro}</div>}
 
               <button type="submit" className="btn-destaque-neon" disabled={carregando} style={{ marginTop: '10px' }}>
-                {carregando ? 'REGISTRANDO...' : 'CONCLUIR E AVANÇAR ➔'}
+                {carregando ? 'ENVIANDO...' : 'FINALIZAR & FALAR COM GESTOR 🚀'}
               </button>
             </form>
 
-            <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '12px' }}>
+            <button type="button" className="btn-voltar-sutil" onClick={() => setEtapa(3)} style={{ marginTop: '12px' }}>
               ← Voltar
             </button>
           </section>
@@ -560,11 +428,21 @@ export default function LandingPage() {
         {/* ETAPA 9: SUCESSO */}
         {etapa === 9 && enviado && (
           <section className="scout-content scout-content-narrow">
-            <div className="scout-success">
-              <div className="scout-success-icon">✓</div>
-              <div className="scout-eyebrow">JORNADA CONCLUÍDA</div>
-              <h2 className="scout-section-title">Agora você faz parte da jornada SCOUT.</h2>
-              <p className="scout-section-text">Obrigado, {nome.split(' ')[0] || 'por participar'}. Seus dados foram salvos.</p>
+            <div className="scout-success" style={{ textAlign: 'center', padding: '30px 0' }}>
+              <div style={{ fontSize: '48px', marginBottom: '10px' }}>🎉</div>
+              <div className="scout-eyebrow">CADASTRO REALIZADO</div>
+              <h2 className="scout-section-title" style={{ color: '#00ff88' }}>Tudo pronto, {nome.split(' ')[0]}!</h2>
+              <p className="scout-section-text" style={{ margin: '15px 0 25px' }}>
+                Seu objetivo ({respostas.objetivo}) foi registrado e enviado para o gestor responsável.
+              </p>
+              <a
+                href={`https://wa.me/5522997881122?text=${encodeURIComponent(`Olá! Acabei de responder ao Quiz do SCOUT.CRC. Meu objetivo é: ${respostas.objetivo}.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: 'block', background: '#00ff88', color: '#050505', padding: '14px', borderRadius: '12px', fontWeight: 'bold', textDecoration: 'none', fontSize: '14px' }}
+              >
+                💬 Abrir Conversa no WhatsApp
+              </a>
             </div>
           </section>
         )}
@@ -575,7 +453,6 @@ export default function LandingPage() {
         </footer>
       </div>
 
-      {/* ESTILOS ESPECÍFICOS PARA OS BOTÕES E OTIMIZAÇÃO MOBILE */}
       <style jsx>{`
         .btn-destaque-neon {
           width: 100%;
@@ -592,19 +469,16 @@ export default function LandingPage() {
           transition: all 0.2s ease;
           text-align: center;
         }
-
         .btn-destaque-neon:hover {
           background: #26ff97;
           box-shadow: 0 0 35px rgba(0, 255, 136, 0.55);
           transform: translateY(-1px);
         }
-
         .btn-destaque-neon:disabled {
           opacity: 0.5;
           cursor: not-allowed;
           box-shadow: none;
         }
-
         .btn-voltar-sutil {
           width: 100%;
           padding: 12px;
@@ -618,7 +492,6 @@ export default function LandingPage() {
           transition: all 0.2s ease;
           text-align: center;
         }
-
         .btn-voltar-sutil:hover {
           color: #fff;
           background: rgba(255, 255, 255, 0.08);
