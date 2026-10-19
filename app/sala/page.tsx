@@ -25,7 +25,7 @@ interface ConvidadoRegistro {
     };
     perfil?: string;
     respostas?: Record<string, string>;
-    status_aprovacao?: 'pendente' | 'aprovado' | 'em_atendimento';
+    status_aprovacao?: 'pendente' | 'aprovado' | 'acompanhamento' | 'desqualificado';
     origem?: string;
   };
 }
@@ -56,7 +56,7 @@ const modulos: Modulo[] = [
 
 export default function SalaPage() {
   const [moduloAtivo, setModuloAtivo] = useState<string | null>('Seu SCOUT');
-  const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Prospecto Digital');
+  const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Feedback de Prospectos');
   const [moduloRestrito, setModuloRestrito] = useState<Modulo | null>(null);
   const [gestorDesbloqueado, setGestorDesbloqueado] = useState(false);
 
@@ -73,6 +73,7 @@ export default function SalaPage() {
   const [carregandoLeads, setCarregandoLeads] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState<string>('todos');
   const [buscaNome, setBuscaNome] = useState<string>('');
+  const [buscaRegiao, setBuscaRegiao] = useState<string>('');
 
   const lidarComCliqueModulo = (modulo: Modulo) => {
     if (!gestorDesbloqueado) {
@@ -106,7 +107,7 @@ export default function SalaPage() {
     verificarSessao();
   }, []);
 
-  // Buscar Leads para o Feedback de Prospectos
+  // Buscar Leads no Supabase
   const carregarLeadsScout = async () => {
     setCarregandoLeads(true);
     try {
@@ -139,15 +140,55 @@ export default function SalaPage() {
     }
   }, [gestorDesbloqueado, moduloAtivo, subModuloAtivo]);
 
+  // Atualização rápida de status do lead na Lei das Médias
+  const atualizarStatusLead = async (id: string, novoStatus: 'aprovado' | 'acompanhamento' | 'desqualificado') => {
+    const leadAlvo = leads.find((l) => l.id === id);
+    if (!leadAlvo) return;
+
+    const novosDados = {
+      ...leadAlvo.dados,
+      status_aprovacao: novoStatus,
+      data_atualizacao_status: new Date().toISOString(),
+    };
+
+    const { error } = await supabase
+      .from('scout_registros')
+      .update({ dados: novosDados })
+      .eq('id', id);
+
+    if (error) {
+      alert('Erro ao atualizar status do prospecto.');
+      return;
+    }
+
+    // Atualização local imediata no estado
+    setLeads((anterior) =>
+      anterior.map((item) =>
+        item.id === id ? { ...item, dados: novosDados } : item
+      )
+    );
+  };
+
   const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
 
+  // Métricas da Lei das Médias
+  const totalLeads = leads.length;
+  const pendentesFila = leads.filter((l) => (l.dados?.status_aprovacao || 'pendente') === 'pendente').length;
+  const acompanhamentoLeads = leads.filter((l) => l.dados?.status_aprovacao === 'acompanhamento').length;
+  const fechadosLeads = leads.filter((l) => l.dados?.status_aprovacao === 'aprovado').length;
+  const taxaConversao = totalLeads > 0 ? Math.round((fechadosLeads / totalLeads) * 100) : 0;
+
+  // Filtragem local
   const leadsFiltrados = leads.filter((item) => {
     const nome = item.dados?.convidado?.nome?.toLowerCase() || '';
-    const matchesBusca = nome.includes(buscaNome.toLowerCase());
+    const regiao = item.dados?.convidado?.cidade?.toLowerCase() || '';
     const status = item.dados?.status_aprovacao || 'pendente';
-    
-    if (filtroStatus === 'todos') return matchesBusca;
-    return matchesBusca && status === filtroStatus;
+
+    const matchesNome = nome.includes(buscaNome.toLowerCase());
+    const matchesRegiao = regiao.includes(buscaRegiao.toLowerCase());
+    const matchesStatus = filtroStatus === 'todos' || status === filtroStatus;
+
+    return matchesNome && matchesRegiao && matchesStatus;
   });
 
   return (
@@ -354,23 +395,60 @@ export default function SalaPage() {
                 </div>
               )}
 
-              {/* LINK 3: FEEDBACK DE PROSPECTOS */}
+              {/* LINK 3: FEEDBACK DE PROSPECTOS COM CONCEITO "LEI DAS MÉDIAS" */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Feedback de Prospectos' && (
                 <div className="sala-dynamic-card">
+                  
+                  {/* MANIFESTO EDUCATIVO DA LEI DAS MÉDIAS */}
+                  <div style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.08), rgba(0,0,0,0.6))', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '18px 20px', marginBottom: '22px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                      <span style={{ background: '#00ff88', color: '#050505', padding: '3px 8px', borderRadius: '6px', fontWeight: '900', fontSize: '10px', letterSpacing: '1px' }}>
+                        CONCEITO OPERACIONAL
+                      </span>
+                      <h4 style={{ margin: 0, color: '#fff', fontSize: '15px' }}>
+                        O SCOUT opera sob a Lei das Médias
+                      </h4>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5' }}>
+                      O sucesso na construção da comunidade não vem de acumular centenas de conversas rasas, mas da <strong>constância e foco na qualidade do X1</strong>. O SCOUT limita sua fila ativa a um <strong>lote diário de até 5 prospectos quentes por vez</strong> para evitar a obesidade de leads. Conclua ou classifique o atendimento para liberar o próximo lote com taxa máxima de conversão!
+                    </p>
+                  </div>
+
+                  {/* DASHBOARD DE MÉTRICAS DA LEI DAS MÉDIAS */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '22px' }}>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>LOTE ATIVO (MÁX 5)</span>
+                      <strong style={{ fontSize: '20px', color: '#00ff88' }}>{pendentesFila}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>EM ACOMPANHAMENTO</span>
+                      <strong style={{ fontSize: '20px', color: '#2bd9ff' }}>{acompanhamentoLeads}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', display: 'block' }}>FECHADOS OZONTECK</span>
+                      <strong style={{ fontSize: '20px', color: '#00ff88' }}>{fechadosLeads}</strong>
+                    </div>
+                    <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.25)', borderRadius: '12px', padding: '12px', textAlign: 'center' }}>
+                      <span style={{ fontSize: '9px', color: '#00ff88', letterSpacing: '1px', display: 'block' }}>TAXA DE EFICIÊNCIA</span>
+                      <strong style={{ fontSize: '20px', color: '#fff' }}>{taxaConversao}%</strong>
+                    </div>
+                  </div>
+
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
                     <div>
-                      <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 3</span>
-                      <h3 style={{ fontSize: '20px', margin: '4px 0', color: '#fff' }}>Feedback de Prospectos (Qualificação Quiz)</h3>
+                      <span className="sala-eyebrow" style={{ color: '#00ff88' }}>FILA ATIVA DE ATENDIMENTO</span>
+                      <h3 style={{ fontSize: '18px', margin: '2px 0', color: '#fff' }}>Prospectos Qualificados no Quiz</h3>
                     </div>
                     <button
                       onClick={carregarLeadsScout}
                       style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
                     >
-                      🔄 Atualizar Lista
+                      🔄 Atualizar Fila
                     </button>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', marginBottom: '20px' }}>
+                  {/* BARRA DE FILTROS TRIPLE (NOME, REGIÃO, STATUS) */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '10px', marginBottom: '20px' }}>
                     <input
                       type="text"
                       placeholder="Buscar por nome..."
@@ -378,14 +456,23 @@ export default function SalaPage() {
                       onChange={(e) => setBuscaNome(e.target.value)}
                       style={{ background: '#050505', border: '1px solid rgba(255,255,255,0.15)', padding: '10px 14px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}
                     />
+                    <input
+                      type="text"
+                      placeholder="📍 Filtrar por Cidade / Estado..."
+                      value={buscaRegiao}
+                      onChange={(e) => setBuscaRegiao(e.target.value)}
+                      style={{ background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#00ff88', fontSize: '12px' }}
+                    />
                     <select
                       value={filtroStatus}
                       onChange={(e) => setFiltroStatus(e.target.value)}
                       style={{ background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
                     >
                       <option value="todos">Todos os Status</option>
-                      <option value="pendente">Pendentes</option>
-                      <option value="aprovado">Aprovados</option>
+                      <option value="pendente">Pendentes (Fila Ativa)</option>
+                      <option value="acompanhamento">Em Acompanhamento</option>
+                      <option value="aprovado">Fechados (Ozonteck)</option>
+                      <option value="desqualificado">Desqualificados</option>
                     </select>
                   </div>
 
@@ -395,14 +482,15 @@ export default function SalaPage() {
                     </div>
                   ) : leadsFiltrados.length === 0 ? (
                     <div style={{ padding: '30px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '12px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
-                      Nenhum prospecto encontrado.
+                      Nenhum prospecto encontrado nesta categoria da fila.
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {leadsFiltrados.map((item) => {
                         const convidado = item.dados?.convidado;
                         const whatsClean = convidado?.whatsapp?.replace(/\D/g, '') || '';
-                        const msgWhats = encodeURIComponent(`Olá ${convidado?.nome || ''}, vi seu feedback no Quiz do SCOUT.CRC! Vamos conversar sobre seu interesse?`);
+                        const statusAtual = item.dados?.status_aprovacao || 'pendente';
+                        const msgWhats = encodeURIComponent(`Olá ${convidado?.nome || ''}, vi seu feedback no Quiz do SCOUT.CRC! Podemos conversar sobre seu objetivo?`);
                         const linkWhats = `https://wa.me/55${whatsClean}?text=${msgWhats}`;
 
                         return (
@@ -420,18 +508,25 @@ export default function SalaPage() {
                             }}
                           >
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                 <strong style={{ color: '#fff', fontSize: '14px' }}>
                                   {convidado?.nome || 'Convidado Sem Nome'}
                                 </strong>
                                 <span style={{ fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '2px 8px', borderRadius: '10px', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 'bold' }}>
                                   {item.dados?.perfil?.toUpperCase() || 'RESPOSTAS QUIZ'}
                                 </span>
+                                
+                                {/* Tag de Status do Lead */}
+                                <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', background: statusAtual === 'aprovado' ? 'rgba(0,255,136,0.2)' : statusAtual === 'acompanhamento' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.08)', color: statusAtual === 'aprovado' ? '#00ff88' : statusAtual === 'acompanhamento' ? '#2bd9ff' : 'rgba(255,255,255,0.6)' }}>
+                                  {statusAtual === 'aprovado' ? '🟢 FECHADO' : statusAtual === 'acompanhamento' ? '🟡 ACOMPANHAMENTO' : '⚪ PENDENTE X1'}
+                                </span>
                               </div>
 
-                              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'flex', gap: '12px', marginTop: '2px' }}>
+                              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'flex', gap: '12px', marginTop: '2px', flexWrap: 'wrap' }}>
                                 <span>📱 {convidado?.whatsapp || 'Sem WhatsApp'}</span>
-                                {convidado?.cidade && <span>📍 {convidado.cidade}</span>}
+                                <span style={{ color: '#00ff88', fontWeight: 'bold' }}>
+                                  📍 {convidado?.cidade || 'Região não informada'}
+                                </span>
                                 <span>📅 {new Date(item.created_at).toLocaleDateString('pt-BR')}</span>
                               </div>
 
@@ -440,6 +535,29 @@ export default function SalaPage() {
                                   <strong>Objetivo:</strong> {item.dados.respostas['objetivo'] || 'Não especificado'}
                                 </div>
                               )}
+
+                              {/* AÇÕES DA LEI DAS MÉDIAS (CLASSIFICAR STATUS) */}
+                              <div style={{ marginTop: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', alignSelf: 'center', marginRight: '4px' }}>Classificar X1:</span>
+                                <button
+                                  onClick={() => atualizarStatusLead(item.id, 'aprovado')}
+                                  style={{ background: 'rgba(0,255,136,0.12)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                  🟢 Fechou Ozonteck
+                                </button>
+                                <button
+                                  onClick={() => atualizarStatusLead(item.id, 'acompanhamento')}
+                                  style={{ background: 'rgba(43,217,255,0.12)', border: '1px solid rgba(43,217,255,0.3)', color: '#2bd9ff', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
+                                >
+                                  🟡 Acompanhamento
+                                </button>
+                                <button
+                                  onClick={() => atualizarStatusLead(item.id, 'desqualificado')}
+                                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}
+                                >
+                                  🔴 Desqualificar
+                                </button>
+                              </div>
                             </div>
 
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '130px' }}>
@@ -690,7 +808,7 @@ export default function SalaPage() {
           align-items: center;
           justify-content: center;
           border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 99px;
+          border-radius: 9px;
           color: rgba(255, 255, 255, 0.55);
           font-size: 12px;
         }
