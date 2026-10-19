@@ -68,8 +68,15 @@ export default function SalaPage() {
     slug: string | null;
   } | null>(null);
 
-  // Estados do Link 1 (Prospecto Digital - Nichos)
-  const [nichoSelecionado, setNichoSelecionado] = useState<'mmn' | 'saude' | 'consumo'>('mmn');
+  // Estados do Link 1 (Prospecto Digital - Motor de Mineração PF / LinkedIn)
+  const [nichoPfSelecionado, setNichoPfSelecionado] = useState<'transicao' | 'liberais' | 'consumo'>('transicao');
+  const [regiaoMineracao, setRegiaoMineracao] = useState<string>('Cabo Frio - RJ');
+  const [minerando, setMinerando] = useState(false);
+  const [leadsMineradosSimulados, setLeadsMineradosSimulados] = useState<Array<{nome: string; perfil: string; regiao: string; whats: string}>>([
+    { nome: 'Carla Mendes', perfil: 'Em Transição de Carreira (LinkedIn Open to Work)', regiao: 'Cabo Frio - RJ', whats: '22998877661' },
+    { nome: 'Rafael Souza', perfil: 'Profissional Liberal / Estética & Bem-estar', regiao: 'Cabo Frio - RJ', whats: '22988112233' },
+    { nome: 'Juliana Freitas', perfil: 'Busca de Renda Extra / Consumo Inteligente', regiao: 'Cabo Frio - RJ', whats: '22991223344' }
+  ]);
 
   // Estados do Feedback de Prospectos
   const [leads, setLeads] = useState<ConvidadoRegistro[]>([]);
@@ -169,7 +176,21 @@ export default function SalaPage() {
     );
   };
 
-  const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}&nicho=${nichoSelecionado}`;
+  // Simulação da Extração Automatizada por Região (Foco Pessoas Físicas)
+  const executarMineracaoRegional = () => {
+    setMinerando(true);
+    setTimeout(() => {
+      setLeadsMineradosSimulados([
+        { nome: 'Marcos Vinícius', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: regiaoMineracao, whats: '22997788554' },
+        { nome: 'Tatiane Antunes', perfil: 'Profissional Liberal (Saúde & Bem-estar)', regiao: regiaoMineracao, whats: '22988334455' },
+        { nome: 'Cláudia Ribeiro', perfil: 'Consumo Inteligente & Comunidade', regiao: regiaoMineracao, whats: '22996655443' },
+        { nome: 'Roberto Carlos', perfil: 'Open to Work (LinkedIn / Logística)', regiao: regiaoMineracao, whats: '22991122334' },
+      ]);
+      setMinerando(false);
+    }, 1200);
+  };
+
+  const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}&nicho=pf`;
 
   const totalLeads = leads.length;
   const pendentesFila = leads.filter((l) => (l.dados?.status_aprovacao || 'pendente') === 'pendente').length;
@@ -323,113 +344,127 @@ export default function SalaPage() {
             </div>
 
             <div className="sala-center-viewport">
-              {/* LINK 1: PROSPECTO DIGITAL COM NICHOS OPERACIONAIS CLICÁVEIS */}
+              {/* LINK 1: PROSPECTO DIGITAL - MOTOR DE MINERAÇÃO DE PESSOAS FÍSICAS / LINKEDIN */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
-                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1</span>
-                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Motor de Atração por Nicho)</h3>
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1 (MOTOR DE MINERAÇÃO PF)</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Sem Garimpo Manual)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    Superando a primeira trava do iniciante: selecione abaixo o nicho de atuação para gerar sua estratégia direcionada e link de captação exclusivo.
+                    O SCOUT varre automaticamente redes profissionais (como <strong>LinkedIn</strong>) e diretórios regionais focando estritamente em **Pessoas Físicas, Transição de Carreira e Profissionais Liberais** (comércio físico tradicional excluído).
                   </p>
 
-                  {/* SELETORES DE NICHO CLICÁVEIS */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-                    
-                    {/* NICHO 1: MMN / LIDERANÇA */}
-                    <button
-                      type="button"
-                      onClick={() => setNichoSelecionado('mmn')}
-                      style={{
-                        padding: '16px',
-                        background: nichoSelecionado === 'mmn' ? 'rgba(0,255,136,0.12)' : 'rgba(255,255,255,0.02)',
-                        borderRadius: '12px',
-                        border: nichoSelecionado === 'mmn' ? '2px solid #00ff88' : '1px solid rgba(255,255,255,0.08)',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                      }}
-                    >
-                      <span style={{ fontSize: '10px', color: '#00ff88', fontWeight: 'bold' }}>NICHO 01</span>
-                      <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Líderes & Redes MMN</h4>
-                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Foco em retenção, plano de carreira e transição para comunidades.</p>
-                    </button>
-
-                    {/* NICHO 2: SAÚDE / ESTÉTICA */}
-                    <button
-                      type="button"
-                      onClick={() => setNichoSelecionado('saude')}
-                      style={{
-                        padding: '16px',
-                        background: nichoSelecionado === 'saude' ? 'rgba(43,217,255,0.12)' : 'rgba(255,255,255,0.02)',
-                        borderRadius: '12px',
-                        border: nichoSelecionado === 'saude' ? '2px solid #2bd9ff' : '1px solid rgba(255,255,255,0.08)',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                      }}
-                    >
-                      <span style={{ fontSize: '10px', color: '#2bd9ff', fontWeight: 'bold' }}>NICHO 02</span>
-                      <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Saúde, Estética & Ozônio</h4>
-                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Foco na ciência dos produtos, bem-estar e curadoria avançada.</p>
-                    </button>
-
-                    {/* NICHO 3: CONSUMO INTELIGENTE */}
-                    <button
-                      type="button"
-                      onClick={() => setNichoSelecionado('consumo')}
-                      style={{
-                        padding: '16px',
-                        background: nichoSelecionado === 'consumo' ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.02)',
-                        borderRadius: '12px',
-                        border: nichoSelecionado === 'consumo' ? '2px solid #ffd700' : '1px solid rgba(255,255,255,0.08)',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease',
-                      }}
-                    >
-                      <span style={{ fontSize: '10px', color: '#ffd700', fontWeight: 'bold' }}>NICHO 03</span>
-                      <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Consumo Consciente</h4>
-                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Foco em economia doméstica inteligente e qualidade de vida.</p>
-                    </button>
-                  </div>
-
-                  {/* PAINEL DINÂMICO DA ESTRATÉGIA DO NICHO SELECIONADO */}
-                  <div style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '14px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ color: '#00ff88', fontSize: '13px' }}>
-                        🎯 ESTRATÉGIA ATIVA: {nichoSelecionado === 'mmn' ? 'LIDERANÇA & MMN' : nichoSelecionado === 'saude' ? 'SAÚDE & ESTÉTICA (OZÔNIO)' : 'CONSUMO INTELIGENTE'}
-                      </strong>
-                      <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)', padding: '3px 8px', borderRadius: '6px' }}>
-                        ID: {gestor?.slug || 'master'}
-                      </span>
-                    </div>
-
-                    <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', margin: 0, lineHeight: '1.6' }}>
-                      {nichoSelecionado === 'mmn' && 'Abordagem voltada para profissionais cansados de rotatividade de redes. O argumento central é a construção de uma Comunidade de Relacionamento de Consumo (CRC) sustentável, com retenção real baseada em pertencimento e não apenas em promessas de ganho rápido.'}
-                      {nichoSelecionado === 'saude' && 'Abordagem voltada para profissionais de estética e saúde que desejam agregar valor científico aos seus clientes através das linhas de ozonioterapia e suplementação de alta performance da Ozonteck.'}
-                      {nichoSelecionado === 'consumo' && 'Abordagem voltada para famílias e indivíduos que buscam otimizar o orçamento mensal transformando o consumo diário obrigatório em fonte de valor e participação na comunidade.'}
-                    </p>
-
-                    {/* LINK DE CAPTAÇÃO EXCLUSIVO PARA O NICHO */}
-                    <div style={{ marginTop: '6px' }}>
-                      <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginBottom: '6px' }}>
-                        LINK DE CAPTAÇÃO EXCLUSIVO PARA ESTE NICHO:
-                      </label>
-                      <div style={{ display: 'flex', gap: '8px' }}>
+                  {/* PAINEL DE CONTROLE DE MINERAÇÃO REGIONAL */}
+                  <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
+                          📍 REGIÃO ALVO DO GESTOR:
+                        </label>
                         <input
                           type="text"
-                          readOnly
-                          value={linkScoutGestor}
-                          style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '8px', color: '#00ff88', fontSize: '11px' }}
+                          value={regiaoMineracao}
+                          onChange={(e) => setRegiaoMineracao(e.target.value)}
+                          placeholder="Ex: Cabo Frio - RJ"
+                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(255,255,255,0.2)', padding: '10px 14px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}
                         />
-                        <button
-                          onClick={() => navigator.clipboard.writeText(linkScoutGestor)}
-                          style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}
-                        >
-                          Copiar Link
-                        </button>
                       </div>
+                      <button
+                        type="button"
+                        onClick={executarMineracaoRegional}
+                        style={{
+                          background: '#00ff88',
+                          color: '#050505',
+                          border: 'none',
+                          padding: '12px 20px',
+                          borderRadius: '10px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          fontSize: '11px',
+                          marginTop: '18px',
+                        }}
+                      >
+                        {minerando ? '⚙️ Minerando Leads...' : '🔍 Executar Mineração Regional'}
+                      </button>
                     </div>
+
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      <span
+                        onClick={() => setNichoPfSelecionado('transicao')}
+                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : 'rgba(255,255,255,0.6)', border: '1px solid rgba(0,255,136,0.2)' }}
+                      >
+                        💼 Em Transição / LinkedIn (Open to Work)
+                      </span>
+                      <span
+                        onClick={() => setNichoPfSelecionado('liberais')}
+                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : 'rgba(255,255,255,0.6)', border: '1px solid rgba(43,217,255,0.2)' }}
+                      >
+                        🩺 Profissionais Liberais & Autônomos
+                      </span>
+                      <span
+                        onClick={() => setNichoPfSelecionado('consumo')}
+                        style={{ padding: '6px 12px', borderRadius: '8px', fontSize: '11px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,215,0,0.2)' }}
+                      >
+                        🛒 Consumo Consciente & Famílias
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* LISTA DE LEADS MINERADOS AUTOMATICAMENTE */}
+                  <h4 style={{ fontSize: '14px', color: '#fff', marginBottom: '12px' }}>
+                    ⚡ Lote Minerado para {regiaoMineracao} ({leadsMineradosSimulados.length} Perfis Prontos)
+                  </h4>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {leadsMineradosSimulados.map((lead, index) => {
+                      const msgW = encodeURIComponent(`Olá ${lead.nome}, notei seu perfil voltado a${lead.perfil} na região de ${lead.regiao}. Convidamos você para conhecer o modelo CRC.`);
+                      const linkW = `https://wa.me/55${lead.whats}?text=${msgW}`;
+
+                      return (
+                        <div
+                          key={index}
+                          style={{
+                            background: 'rgba(0,0,0,0.4)',
+                            border: '1px solid rgba(0,255,136,0.2)',
+                            borderRadius: '12px',
+                            padding: '14px',
+                            display: 'grid',
+                            gridTemplateColumns: '1fr auto',
+                            gap: '12px',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <strong style={{ color: '#fff', fontSize: '13px' }}>{lead.nome}</strong>
+                              <span style={{ fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                                {lead.regiao}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>
+                              🎯 <strong>Perfil:</strong> {lead.perfil}
+                            </p>
+                          </div>
+
+                          <a
+                            href={linkW}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              background: '#00ff88',
+                              color: '#050505',
+                              fontWeight: 'bold',
+                              fontSize: '11px',
+                              padding: '8px 12px',
+                              borderRadius: '8px',
+                              textDecoration: 'none',
+                              textAlign: 'center',
+                            }}
+                          >
+                            💬 Iniciar X1 Direto
+                          </a>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -454,11 +489,11 @@ export default function SalaPage() {
                         <input
                           type="text"
                           readOnly
-                          value={`https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`}
+                          value={linkScoutGestor}
                           style={{ flex: 1, background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '8px 12px', borderRadius: '8px', color: '#00ff88', fontSize: '11px' }}
                         />
                         <button
-                          onClick={() => navigator.clipboard.writeText(`https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`)}
+                          onClick={() => navigator.clipboard.writeText(linkScoutGestor)}
                           style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '11px' }}
                         >
                           Copiar Link
@@ -965,133 +1000,4 @@ export default function SalaPage() {
           font-size: 13px;
           line-height: 1.65;
         }
-        .sala-welcome-mark {
-          min-width: 190px;
-          padding: 12px 0 0;
-          text-align: right;
-        }
-        .sala-welcome-mark span {
-          display: block;
-          color: rgba(255, 255, 255, 0.07);
-          font-size: 58px;
-          font-weight: 900;
-          line-height: 0.8;
-          letter-spacing: 5px;
-        }
-        .sala-welcome-mark small {
-          display: block;
-          margin-top: 10px;
-          color: rgba(255, 255, 255, 0.25);
-          font-size: 8px;
-          letter-spacing: 1.3px;
-        }
-        .sala-center-viewport {
-          margin-top: 10px;
-        }
-        .sala-dynamic-card {
-          background: rgba(0, 255, 136, 0.03);
-          border: 1px solid rgba(0, 255, 136, 0.2);
-          border-radius: 20px;
-          padding: 30px;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        }
-        .sala-hero-art-container {
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          background: rgba(255, 255, 255, 0.015);
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 20px;
-          padding: 34px;
-        }
-        .sala-art-text h2 {
-          font-size: 22px;
-          margin: 6px 0 10px;
-          color: #fff;
-        }
-        .sala-art-text p {
-          font-size: 12px;
-          color: rgba(255, 255, 255, 0.5);
-          line-height: 1.6;
-        }
-        .sala-footer {
-          display: flex;
-          justify-content: space-between;
-          padding: 14px 24px;
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          color: rgba(255, 255, 255, 0.24);
-          font-size: 8px;
-          letter-spacing: 1.3px;
-          text-transform: uppercase;
-        }
-        .sala-modal-backdrop {
-          position: fixed;
-          inset: 0;
-          z-index: 50;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 20px;
-          background: rgba(0, 0, 0, 0.76);
-          backdrop-filter: blur(10px);
-        }
-        .sala-modal {
-          width: min(460px, 100%);
-          padding: 30px;
-          border: 1px solid rgba(0, 255, 136, 0.16);
-          border-radius: 22px;
-          background: #0b0f0d;
-          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
-          text-align: center;
-        }
-        .sala-modal-lock {
-          display: flex;
-          width: 48px;
-          height: 48px;
-          margin: 0 auto 18px;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgba(0, 255, 136, 0.2);
-          border-radius: 15px;
-          color: #00ff88;
-          font-size: 18px;
-        }
-        .sala-modal h2 {
-          margin: 8px 0 10px;
-          font-size: 28px;
-        }
-        .sala-modal p {
-          color: rgba(255, 255, 255, 0.45);
-          font-size: 12px;
-          line-height: 1.5;
-        }
-        .sala-modal-message {
-          margin-top: 18px;
-          padding: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.06);
-          border-radius: 14px;
-          background: rgba(255, 255, 255, 0.025);
-          color: rgba(255, 255, 255, 0.46);
-          font-size: 11px;
-          line-height: 1.6;
-        }
-        .sala-modal-message strong {
-          color: #f0f3f3;
-        }
-        .sala-modal-close {
-          width: 100%;
-          margin-top: 18px;
-          padding: 12px 16px;
-          border: 1px solid rgba(0, 255, 136, 0.28);
-          border-radius: 12px;
-          background: rgba(0, 255, 136, 0.06);
-          color: #00ff88;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.9px;
-          cursor: pointer;
-        }
-      `}</style>
-    </main>
-  );
-}
+        .
