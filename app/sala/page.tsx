@@ -25,7 +25,7 @@ interface ConvidadoRegistro {
     };
     perfil?: string;
     respostas?: Record<string, string>;
-    status_aprovacao?: 'pendente' | 'acompanhamento' | 'solicitado_master' | 'codigo_liberado' | 'desqualificado';
+    status_aprovacao?: 'pendente' | 'acompanhamento' | 'solicitado_master' | 'codigo_liberado' | 'desqualificado' | 'nao_interesse';
     codigo_master?: string;
     origem?: string;
   };
@@ -254,7 +254,7 @@ export default function SalaPage() {
     }
   }, [gestorDesbloqueado, moduloAtivo, subModuloAtivo]);
 
-  const atualizarStatusLead = async (id: string, novoStatus: 'pendente' | 'acompanhamento' | 'solicitado_master' | 'codigo_liberado' | 'desqualificado') => {
+  const atualizarStatusLead = async (id: string, novoStatus: 'pendente' | 'acompanhamento' | 'solicitado_master' | 'codigo_liberado' | 'desqualificado' | 'nao_interesse') => {
     const leadAlvo = leads.find((l) => l.id === id);
     if (!leadAlvo) return;
 
@@ -693,7 +693,7 @@ export default function SalaPage() {
                       </h4>
                     </div>
                     <p style={{ margin: 0, fontSize: '12px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5' }}>
-                      Os prospectos listados abaixo preencheram o Quiz pelo seu link exclusivo. Realize o atendimento no X1 e solicite a emissão do Código de Entrada ao <strong>Master (Gilmar)</strong> assim que o cadastro for qualificado.
+                      Os prospectos listados abaixo preencheram o Quiz pelo seu link exclusivo. Realize o atendimento no X1 e utilize a prancheta abaixo para gerenciar a fila e solicitar a emissão do Código de Entrada ao <strong>Master (Gilmar)</strong>.
                     </p>
                   </div>
 
@@ -778,6 +778,7 @@ export default function SalaPage() {
                       <option value="acompanhamento">Em Acompanhamento</option>
                       <option value="solicitado_master">Aguardando Master</option>
                       <option value="codigo_liberado">Códigos Liberados</option>
+                      <option value="nao_interesse">Não Tenho Interesse (72h+)</option>
                       <option value="desqualificado">Desqualificados</option>
                     </select>
                   </div>
@@ -800,13 +801,18 @@ export default function SalaPage() {
                         const msgWhats = encodeURIComponent(`Olá ${convidado?.nome || ''}, recebi seu cadastro no Quiz do SCOUT.CRC! Podemos conversar sobre seu objetivo?`);
                         const linkWhats = `https://wa.me/55${whatsClean}?text=${msgWhats}`;
 
+                        // Cálculo de tempo para alerta visual de 72h
+                        const dataCriacao = new Date(item.created_at).getTime();
+                        const horasDecorridas = (Date.now() - dataCriacao) / (1000 * 60 * 60);
+                        const passouDe72h = horasDecorridas >= 72 && statusAtual === 'pendente';
+
                         return (
                           <div
                             key={item.id}
                             className="lead-card-printable"
                             style={{
                               background: 'rgba(0,0,0,0.5)',
-                              border: '1px solid rgba(0,255,136,0.2)',
+                              border: passouDe72h ? '1px solid rgba(255,100,100,0.4)' : '1px solid rgba(0,255,136,0.2)',
                               borderRadius: '14px',
                               padding: '16px',
                               display: 'grid',
@@ -824,9 +830,15 @@ export default function SalaPage() {
                                   {item.dados?.perfil?.toUpperCase() || 'RESPOSTAS QUIZ'}
                                 </span>
                                 
-                                <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', background: statusAtual === 'codigo_liberado' ? 'rgba(0,255,136,0.2)' : statusAtual === 'solicitado_master' ? 'rgba(255,215,0,0.2)' : statusAtual === 'acompanhamento' ? 'rgba(43,217,255,0.2)' : 'rgba(255,255,255,0.08)', color: statusAtual === 'codigo_liberado' ? '#00ff88' : statusAtual === 'solicitado_master' ? '#ffd700' : statusAtual === 'acompanhamento' ? '#2bd9ff' : 'rgba(255,255,255,0.6)' }}>
-                                  {statusAtual === 'codigo_liberado' ? `✦ CÓDIGO: ${item.dados.codigo_master || 'ATIVO'}` : statusAtual === 'solicitado_master' ? '🟡 AGUARDANDO CÓDIGO MASTER' : statusAtual === 'acompanhamento' ? '🔵 EM ACOMPANHAMENTO' : '⚪ PENDENTE X1'}
+                                <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold', background: statusAtual === 'codigo_liberado' ? 'rgba(0,255,136,0.2)' : statusAtual === 'solicitado_master' ? 'rgba(255,215,0,0.2)' : statusAtual === 'acompanhamento' ? 'rgba(43,217,255,0.2)' : statusAtual === 'nao_interesse' ? 'rgba(255,100,100,0.2)' : 'rgba(255,255,255,0.08)', color: statusAtual === 'codigo_liberado' ? '#00ff88' : statusAtual === 'solicitado_master' ? '#ffd700' : statusAtual === 'acompanhamento' ? '#2bd9ff' : statusAtual === 'nao_interesse' ? '#ff6464' : 'rgba(255,255,255,0.6)' }}>
+                                  {statusAtual === 'codigo_liberado' ? `✦ CÓDIGO: ${item.dados.codigo_master || 'ATIVO'}` : statusAtual === 'solicitado_master' ? '🟡 AGUARDANDO CÓDIGO MASTER' : statusAtual === 'acompanhamento' ? '🔵 EM ACOMPANHAMENTO' : statusAtual === 'nao_interesse' ? '🔴 NÃO TENHO INTERESSE (72H+)' : '⚪ PENDENTE X1'}
                                 </span>
+
+                                {passouDe72h && (
+                                  <span style={{ fontSize: '8px', background: 'rgba(255,100,100,0.2)', color: '#ff6464', padding: '2px 6px', borderRadius: '6px', border: '1px solid rgba(255,100,100,0.4)', fontWeight: 'bold' }}>
+                                    ⚠️ +72H SEM RESPOSTA
+                                  </span>
+                                )}
                               </div>
 
                               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'flex', gap: '12px', marginTop: '2px', flexWrap: 'wrap' }}>
@@ -844,7 +856,7 @@ export default function SalaPage() {
                               )}
 
                               <div style={{ marginTop: '10px', display: 'flex', gap: '6px', flexWrap: 'wrap' }} className="no-print">
-                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', alignSelf: 'center', marginRight: '4px' }}>Classificar X1:</span>
+                                <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', alignSelf: 'center', marginRight: '4px' }}>Gerir Fila:</span>
                                 
                                 <button
                                   onClick={() => atualizarStatusLead(item.id, 'solicitado_master')}
@@ -861,10 +873,10 @@ export default function SalaPage() {
                                 </button>
 
                                 <button
-                                  onClick={() => atualizarStatusLead(item.id, 'desqualificado')}
-                                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)', color: 'rgba(255,255,255,0.5)', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}
+                                  onClick={() => atualizarStatusLead(item.id, 'nao_interesse')}
+                                  style={{ background: 'rgba(255,100,100,0.1)', border: '1px solid rgba(255,100,100,0.3)', color: '#ff6464', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer', fontWeight: 'bold' }}
                                 >
-                                  🔴 Desqualificar
+                                  🔴 Não Tenho Interesse
                                 </button>
                               </div>
                             </div>
