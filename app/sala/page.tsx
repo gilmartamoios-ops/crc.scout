@@ -176,7 +176,6 @@ export default function SalaPage() {
     );
   };
 
-  // Simulação da Extração Automatizada por Região (Foco Pessoas Físicas)
   const executarMineracaoRegional = () => {
     setMinerando(true);
     setTimeout(() => {
@@ -350,10 +349,9 @@ export default function SalaPage() {
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1 (MOTOR DE MINERAÇÃO PF)</span>
                   <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Sem Garimpo Manual)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    O SCOUT varre automaticamente redes profissionais (como <strong>LinkedIn</strong>) e diretórios regionais focando estritamente em **Pessoas Físicas, Transição de Carreira e Profissionais Liberais** (comércio físico tradicional excluído).
+                    O SCOUT varre automaticamente redes profissionais (como <strong>LinkedIn</strong>) e diretórios regionais focando estritamente em <strong>Pessoas Físicas, Transição de Carreira e Profissionais Liberais</strong> (comércio físico tradicional excluído).
                   </p>
 
-                  {/* PAINEL DE CONTROLE DE MINERAÇÃO REGIONAL */}
                   <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px', alignItems: 'center', marginBottom: '16px' }}>
                       <div>
@@ -409,14 +407,13 @@ export default function SalaPage() {
                     </div>
                   </div>
 
-                  {/* LISTA DE LEADS MINERADOS AUTOMATICAMENTE */}
                   <h4 style={{ fontSize: '14px', color: '#fff', marginBottom: '12px' }}>
                     ⚡ Lote Minerado para {regiaoMineracao} ({leadsMineradosSimulados.length} Perfis Prontos)
                   </h4>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     {leadsMineradosSimulados.map((lead, index) => {
-                      const msgW = encodeURIComponent(`Olá ${lead.nome}, notei seu perfil voltado a${lead.perfil} na região de ${lead.regiao}. Convidamos você para conhecer o modelo CRC.`);
+                      const msgW = encodeURIComponent(`Olá ${lead.nome}, notei seu perfil voltado a ${lead.perfil} na região de ${lead.regiao}. Convidamos você para conhecer o modelo CRC.`);
                       const linkW = `https://wa.me/55${lead.whats}?text=${msgW}`;
 
                       return (
@@ -1000,4 +997,133 @@ export default function SalaPage() {
           font-size: 13px;
           line-height: 1.65;
         }
-        .
+        .sala-welcome-mark {
+          min-width: 190px;
+          padding: 12px 0 0;
+          text-align: right;
+        }
+        .sala-welcome-mark span {
+          display: block;
+          color: rgba(255, 255, 255, 0.07);
+          font-size: 58px;
+          font-weight: 900;
+          line-height: 0.8;
+          letter-spacing: 5px;
+        }
+        .sala-welcome-mark small {
+          display: block;
+          margin-top: 10px;
+          color: rgba(255, 255, 255, 0.25);
+          font-size: 8px;
+          letter-spacing: 1.3px;
+        }
+        .sala-center-viewport {
+          margin-top: 10px;
+        }
+        .sala-dynamic-card {
+          background: rgba(0, 255, 136, 0.03);
+          border: 1px solid rgba(0, 255, 136, 0.2);
+          border-radius: 20px;
+          padding: 30px;
+          box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .sala-hero-art-container {
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+          background: rgba(255, 255, 255, 0.015);
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 20px;
+          padding: 34px;
+        }
+        .sala-art-text h2 {
+          font-size: 22px;
+          margin: 6px 0 10px;
+          color: #fff;
+        }
+        .sala-art-text p {
+          font-size: 12px;
+          color: rgba(255, 255, 255, 0.5);
+          line-height: 1.6;
+        }
+        .sala-footer {
+          display: flex;
+          justify-content: space-between;
+          padding: 14px 24px;
+          border-top: 1px solid rgba(255, 255, 255, 0.06);
+          color: rgba(255, 255, 255, 0.24);
+          font-size: 8px;
+          letter-spacing: 1.3px;
+          text-transform: uppercase;
+        }
+        .sala-modal-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 50;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          background: rgba(0, 0, 0, 0.76);
+          backdrop-filter: blur(10px);
+        }
+        .sala-modal {
+          width: min(460px, 100%);
+          padding: 30px;
+          border: 1px solid rgba(0, 255, 136, 0.16);
+          border-radius: 22px;
+          background: #0b0f0d;
+          box-shadow: 0 30px 90px rgba(0, 0, 0, 0.54);
+          text-align: center;
+        }
+        .sala-modal-lock {
+          display: flex;
+          width: 48px;
+          height: 48px;
+          margin: 0 auto 18px;
+          align-items: center;
+          justify-content: center;
+          border: 1px solid rgba(0, 255, 136, 0.2);
+          border-radius: 15px;
+          color: #00ff88;
+          font-size: 18px;
+        }
+        .sala-modal h2 {
+          margin: 8px 0 10px;
+          font-size: 28px;
+        }
+        .sala-modal p {
+          color: rgba(255, 255, 255, 0.45);
+          font-size: 12px;
+          line-height: 1.5;
+        }
+        .sala-modal-message {
+          margin-top: 18px;
+          padding: 16px;
+          border: 1px solid rgba(255, 255, 255, 0.06);
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.025);
+          color: rgba(255, 255, 255, 0.46);
+          font-size: 11px;
+          line-height: 1.6;
+        }
+        .sala-modal-message strong {
+          color: #f0f3f3;
+        }
+        .sala-modal-close {
+          width: 100%;
+          margin-top: 18px;
+          padding: 12px 16px;
+          border: 1px solid rgba(0, 255, 136, 0.28);
+          border-radius: 12px;
+          background: rgba(0, 255, 136, 0.06);
+          color: #00ff88;
+          font-size: 11px;
+          font-weight: 800;
+          letter-spacing: 0.9px;
+          cursor: pointer;
+        }
+      `}</style>
+    </main>
+  );
+}
