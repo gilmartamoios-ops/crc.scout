@@ -54,7 +54,7 @@ const modulos: Modulo[] = [
   },
 ];
 
-// Dados geográficos simulados para os Dropdowns
+// Dados geográficos oficiais para os Dropdowns
 const municipiosPorEstado: Record<string, string[]> = {
   RJ: ['Cabo Frio', 'Arraial do Cabo', 'Búzios', 'Niterói', 'Rio de Janeiro', 'Campos dos Goytacazes', 'Petrópolis', 'Macaé'],
   SP: ['São Paulo', 'Campinas', 'Santos', 'Ribeirão Preto', 'São José dos Campos'],
@@ -76,13 +76,13 @@ export default function SalaPage() {
     slug: string | null;
   } | null>(null);
 
-  // Estados do Link 1 (Prospecto Digital - Motor de Mineração PF com Dropdowns e Lote de 20)
+  // Estados do Link 1 (Prospecto Digital)
   const [estadoSelecionado, setEstadoSelecionado] = useState<string>('RJ');
   const [municipioSelecionado, setMunicipioSelecionado] = useState<string>('Cabo Frio');
   const [nichoPfSelecionado, setNichoPfSelecionado] = useState<'transicao' | 'liberais' | 'consumo'>('transicao');
   const [minerando, setMinerando] = useState(false);
   
-  // Controle da Trava Antitravamento (Limite de lotes pendentes)
+  // Controle da Trava Antitravamento
   const [lotesGeradosHoje, setLotesGeradosHoje] = useState<number>(1);
   const [leadsMinerados, setLeadsMinerados] = useState<Array<{nome: string; perfil: string; regiao: string; whats: string}>>([
     { nome: 'Marcos Vinícius', perfil: 'Transição de Carreira (LinkedIn / Adm)', regiao: 'Cabo Frio - RJ', whats: '22997788554' },
@@ -205,7 +205,6 @@ export default function SalaPage() {
     );
   };
 
-  // Motor de Mineração com base no Nicho e Região Selecionada (Lote de 20 + Trava Antitravamento)
   const executarMineracaoPorNicho = (nicho: 'transicao' | 'liberais' | 'consumo') => {
     if (lotesGeradosHoje >= 3) {
       alert('🔒 Trava de Segurança da Lei das Médias: Você atingiu o limite de 3 lotes diários gerados. Conclua os atendimentos em andamento na sua Fila Ativa antes de extrair novos lotes para evitar sobrecarga.');
@@ -217,7 +216,6 @@ export default function SalaPage() {
 
     setTimeout(() => {
       const regiaoStr = `${municipioSelecionado} - ${estadoSelecionado}`;
-      
       let baseGerada: Array<{nome: string; perfil: string; regiao: string; whats: string}> = [];
 
       if (nicho === 'transicao') {
@@ -294,7 +292,7 @@ export default function SalaPage() {
       setLeadsMinerados(baseGerada);
       setLotesGeradosHoje((prev) => prev + 1);
       setMinerando(false);
-    }, 1000);
+    }, 800);
   };
 
   const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}&nicho=pf`;
@@ -451,20 +449,18 @@ export default function SalaPage() {
             </div>
 
             <div className="sala-center-viewport">
-              {/* LINK 1: PROSPECTO DIGITAL - MINERAÇÃO PF COM DROPDOWN ESTADOS/CIDADES E LOTE 20 */}
+              {/* LINK 1: PROSPECTO DIGITAL */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1 (MOTOR DE MINERAÇÃO PF)</span>
                   <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Mineração Regional Automatizada)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    O SCOUT extrai lotes de <strong>20 perfis qualificados por vez</strong> (Pessoas Físicas, Transição LinkedIn e Liberais) com base estrita no Estado e Município selecionados.
+                    O SCOUT extrai lotes de <strong>20 perfis qualificados por vez</strong> com base no Estado e Município selecionados.
                   </p>
 
-                  {/* PAINEL DE SELEÇÃO GEOGRÁFICA (DROPDOWNS) */}
                   <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '140px 1fr auto', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
                       
-                      {/* DROPDOWN DE ESTADOS */}
                       <div>
                         <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
                           📍 ESTADO:
@@ -478,13 +474,12 @@ export default function SalaPage() {
                           }}
                           style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
                         >
-                          {Object.keys(municipiosPorEstado.reduce((acc, cur) => ({...acc, [cur]: true}), {} as Record<string, boolean>)).map((uf) => (
+                          {Object.keys(municipiosPorEstado).map((uf) => (
                             <option key={uf} value={uf}>{uf}</option>
                           ))}
                         </select>
                       </div>
 
-                      {/* DROPDOWN DE MUNICÍPIOS */}
                       <div>
                         <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
                           🏙️ MUNICÍPIO / REGIÃO:
@@ -500,7 +495,6 @@ export default function SalaPage() {
                         </select>
                       </div>
 
-                      {/* INDICADOR DE LOTES GERADOS HOJE (TRAVA ANTITRAVAMENTO) */}
                       <div style={{ textAlign: 'right', marginTop: '14px' }}>
                         <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', display: 'block' }}>LOTES GERADOS HOJE</span>
                         <strong style={{ fontSize: '14px', color: lotesGeradosHoje >= 3 ? '#ff4d4d' : '#00ff88' }}>
@@ -509,7 +503,6 @@ export default function SalaPage() {
                       </div>
                     </div>
 
-                    {/* BOTÕES DE NICHOS CLICÁVEIS QUE GERAM O LOTE DE 20 */}
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                       <button
                         type="button"
@@ -544,7 +537,6 @@ export default function SalaPage() {
                     </span>
                   </div>
 
-                  {/* LISTAGEM DOS 20 PROSPECTOS MINERADOS */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
                     {leadsMinerados.map((lead, index) => {
                       const msgW = encodeURIComponent(`Olá ${lead.nome}, notei seu perfil voltado a ${lead.perfil} na região de ${lead.regiao}. Convidamos você para conhecer o modelo CRC.`);
