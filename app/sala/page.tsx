@@ -10,6 +10,26 @@ type Modulo = {
   sublinks?: string[];
 };
 
+interface ConvidadoRegistro {
+  id: string;
+  created_at: string;
+  gestor_id: string | null;
+  tipo: string;
+  titulo: string;
+  dados: {
+    convidado?: {
+      nome: string;
+      whatsapp: string;
+      email?: string;
+      cidade?: string;
+    };
+    perfil?: string;
+    respostas?: Record<string, string>;
+    status_aprovacao?: 'pendente' | 'aprovado' | 'em_atendimento';
+    origem?: string;
+  };
+}
+
 const modulos: Modulo[] = [
   {
     nome: 'Informativos',
@@ -30,13 +50,13 @@ const modulos: Modulo[] = [
     nome: 'Seu SCOUT',
     descricao: 'Sua operação de prospecção e gestão de convidados.',
     icone: '✧',
-    sublinks: ['Prospecto Digital', 'Santinho Digital'],
+    sublinks: ['Prospecto Digital', 'Santinho Digital', 'Feedback de Prospectos'],
   },
 ];
 
 export default function SalaPage() {
-  const [moduloAtivo, setModuloAtivo] = useState<string | null>(null);
-  const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>(null);
+  const [moduloAtivo, setModuloAtivo] = useState<string | null>('Seu SCOUT');
+  const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Prospecto Digital');
   const [moduloRestrito, setModuloRestrito] = useState<Modulo | null>(null);
   const [gestorDesbloqueado, setGestorDesbloqueado] = useState(false);
 
@@ -47,6 +67,12 @@ export default function SalaPage() {
     email?: string;
     slug: string | null;
   } | null>(null);
+
+  // Estados do Feedback de Prospectos
+  const [leads, setLeads] = useState<ConvidadoRegistro[]>([]);
+  const [carregandoLeads, setCarregandoLeads] = useState(false);
+  const [filtroStatus, setFiltroStatus] = useState<string>('todos');
+  const [buscaNome, setBuscaNome] = useState<string>('');
 
   const lidarComCliqueModulo = (modulo: Modulo) => {
     if (!gestorDesbloqueado) {
@@ -80,29 +106,49 @@ export default function SalaPage() {
     verificarSessao();
   }, []);
 
+  // Buscar Leads para o Feedback de Prospectos
+  const carregarLeadsScout = async () => {
+    setCarregandoLeads(true);
+    try {
+      let query = supabase
+        .from('scout_registros')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (gestor && gestor.slug !== 'master') {
+        query = query.eq('gestor_id', gestor.slug || gestor.id);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Erro ao buscar leads:', error);
+      } else if (data) {
+        setLeads(data as ConvidadoRegistro[]);
+      }
+    } catch (err) {
+      console.error('Erro inesperado:', err);
+    } finally {
+      setCarregandoLeads(false);
+    }
+  };
+
+  useEffect(() => {
+    if (gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Feedback de Prospectos') {
+      carregarLeadsScout();
+    }
+  }, [gestorDesbloqueado, moduloAtivo, subModuloAtivo]);
+
   const linkScoutGestor = `https://crc-scout.vercel.app/?gestor_id=${gestor?.slug || 'master'}`;
 
-  // Função para registrar evento ou rastreio estruturado no Supabase caso necessário na sala
-  const registrarAcaoSupabase = async (acao: string) => {
-    if (!gestor) return;
-    await supabase.from('scout_registros').insert({
-      tipo: 'gestor_operacao',
-      gestor_id: gestor.slug || gestor.id,
-      titulo: `Ação na Sala: ${acao}`,
-      descricao: `O gestor ${gestor.nome} acessou o módulo ${acao}`,
-      dados: {
-        lider: {
-          id: gestor.id,
-          nome: gestor.nome,
-          whatsapp: gestor.whatsapp,
-          email: gestor.email || '',
-          slug: gestor.slug,
-        },
-        acao,
-        timestamp: new Date().toISOString(),
-      },
-    });
-  };
+  const leadsFiltrados = leads.filter((item) => {
+    const nome = item.dados?.convidado?.nome?.toLowerCase() || '';
+    const matchesBusca = nome.includes(buscaNome.toLowerCase());
+    const status = item.dados?.status_aprovacao || 'pendente';
+    
+    if (filtroStatus === 'todos') return matchesBusca;
+    return matchesBusca && status === filtroStatus;
+  });
 
   return (
     <main className="sala-page">
@@ -118,7 +164,6 @@ export default function SalaPage() {
             </div>
           </div>
 
-          {/* Botões de Ação Superior: Retorno ao Hall + Status do Gestor */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <button
               type="button"
@@ -192,10 +237,7 @@ export default function SalaPage() {
                           key={sub}
                           type="button"
                           className={`sala-sublink-btn ${subModuloAtivo === sub ? 'active' : ''}`}
-                          onClick={() => {
-                            setSubModuloAtivo(sub);
-                            registrarAcaoSupabase(sub);
-                          }}
+                          onClick={() => setSubModuloAtivo(sub)}
                         >
                           ↳ {sub}
                         </button>
@@ -211,7 +253,7 @@ export default function SalaPage() {
                 <>
                   <span className="sala-visitor-tag">GESTOR DE COMUNIDADE</span>
                   <strong className="sala-gestor-name">{gestor.nome}</strong>
-                  <p>Você está na sua Sala de Operações com rastreio ativo no Supabase.</p>
+                  <p>Operação SCOUT ativa com rastreio direto no Supabase.</p>
                 </>
               ) : (
                 <>
@@ -226,12 +268,12 @@ export default function SalaPage() {
           <section className="sala-main">
             <div className="sala-welcome">
               <div>
-                <div className="sala-eyebrow">VOCÊ JÁ ESTÁ DENTRO</div>
+                <div className="sala-eyebrow">MÓDULO DE INTELIGÊNCIA</div>
                 <h1>
-                  Bem-vindo à <span>Sala de Operações.</span>
+                  Sua Central <span>SCOUT.</span>
                 </h1>
                 <p>
-                  Ferramentas de tráfego, qualificação e feedback de leads organizadas para eliminar a barreira da prospecção.
+                  Prospecção, atração visual e inteligência de qualificação para o modelo CRC.
                 </p>
               </div>
 
@@ -241,36 +283,55 @@ export default function SalaPage() {
               </div>
             </div>
 
-            {/* Conteúdo Central Dinâmico */}
             <div className="sala-center-viewport">
+              {/* LINK 1: PROSPECTO DIGITAL */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
-                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · FILTRAGEM</span>
-                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital</h3>
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 1</span>
+                  <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Prospecto Digital (Motor de Prospecção)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '20px' }}>
-                    Gere a sua lista de prospectos com base nos filtros inteligentes definidos para a sua operação de comunidade.
+                    Automação para superar a primeira grande trava do iniciante: atração e filtragem direcionada para nichos específicos e profissionais de MMN.
                   </p>
-                  <div style={{ padding: '20px', background: 'rgba(0,0,0,0.4)', borderRadius: '12px', border: '1px solid rgba(0,255,136,0.2)' }}>
-                    <p style={{ fontSize: '12px', color: '#00ff88' }}>⚙️ Configuração de Filtros de Perfil de Lead em carregamento...</p>
+
+                  <div style={{ padding: '24px', background: 'rgba(0,0,0,0.5)', borderRadius: '14px', border: '1px solid rgba(0,255,136,0.25)', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                      <div style={{ padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <span style={{ fontSize: '10px', color: '#00ff88', fontWeight: 'bold' }}>NICHO 1</span>
+                        <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Líderes & MMN</h4>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Arquitetura de abordagem direcionada a redes e lideranças.</p>
+                      </div>
+                      <div style={{ padding: '14px', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <span style={{ fontSize: '10px', color: '#2bd9ff', fontWeight: 'bold' }}>NICHO 2</span>
+                        <h4 style={{ margin: '4px 0', fontSize: '14px', color: '#fff' }}>Profissionais de Saúde/Estética</h4>
+                        <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)' }}>Atração com foco no poder e ciência do Ozônio.</p>
+                      </div>
+                    </div>
+
+                    <div style={{ padding: '16px', background: 'rgba(0,255,136,0.05)', borderRadius: '10px', border: '1px dashed rgba(0,255,136,0.3)', textAlign: 'center' }}>
+                      <p style={{ fontSize: '12px', color: '#00ff88', margin: 0 }}>
+                        ⚙️ Módulo de Configuração de Tráfego e Filtros de Nicho em estruturação avançada...
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
 
+              {/* LINK 2: SANTINHO DIGITAL */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Santinho Digital' && (
                 <div className="sala-dynamic-card">
-                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · CHAMADA DE ATENÇÃO</span>
+                  <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 2</span>
                   <h3 style={{ fontSize: '20px', margin: '8px 0 4px', color: '#fff' }}>Santinho Digital (Vídeo de 10s)</h3>
                   <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
-                    Este vídeo possui a sua <strong>assinatura digital</strong> embutida. Ao enviar para os prospectos, o CTA direciona para o seu link exclusivo do SCOUT, garantindo rastreio total no Supabase.
+                    Sua assinatura visual com link direto do seu SCOUT para disparo rápido e atração instantânea.
                   </p>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '20px', alignItems: 'center', background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(0,255,136,0.2)' }}>
                     <div style={{ background: '#000', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(0,255,136,0.3)', textAlign: 'center', padding: '10px' }}>
-                      <span style={{ fontSize: '10px', color: '#00ff88', display: 'block', marginBottom: '6px' }}>VÍDEO 10s (EXEMPLO)</span>
+                      <span style={{ fontSize: '10px', color: '#00ff88', display: 'block', marginBottom: '6px' }}>VÍDEO 10s</span>
                       <video src="/assets/santinho.mp4" controls style={{ width: '100%', borderRadius: '6px' }} />
                     </div>
                     <div>
-                      <strong style={{ fontSize: '13px', color: '#fff' }}>Link de Destino do CTA:</strong>
+                      <strong style={{ fontSize: '13px', color: '#fff' }}>Link do seu CTA Exclusivo:</strong>
                       <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
                         <input
                           type="text"
@@ -286,13 +347,135 @@ export default function SalaPage() {
                         </button>
                       </div>
                       <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', display: 'block', marginTop: '6px' }}>
-                        ID do Gestor Vinculado: <code style={{ color: '#00ff88' }}>{gestor?.slug}</code>
+                        ID do Gestor Vinculado: <code style={{ color: '#00ff88' }}>{gestor?.slug || 'master'}</code>
                       </span>
                     </div>
                   </div>
                 </div>
               )}
 
+              {/* LINK 3: FEEDBACK DE PROSPECTOS */}
+              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Feedback de Prospectos' && (
+                <div className="sala-dynamic-card">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div>
+                      <span className="sala-eyebrow" style={{ color: '#00ff88' }}>SEU SCOUT · LINK 3</span>
+                      <h3 style={{ fontSize: '20px', margin: '4px 0', color: '#fff' }}>Feedback de Prospectos (Qualificação Quiz)</h3>
+                    </div>
+                    <button
+                      onClick={carregarLeadsScout}
+                      style={{ background: 'rgba(0,255,136,0.1)', border: '1px solid rgba(0,255,136,0.3)', color: '#00ff88', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
+                    >
+                      🔄 Atualizar Lista
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '10px', marginBottom: '20px' }}>
+                    <input
+                      type="text"
+                      placeholder="Buscar por nome..."
+                      value={buscaNome}
+                      onChange={(e) => setBuscaNome(e.target.value)}
+                      style={{ background: '#050505', border: '1px solid rgba(255,255,255,0.15)', padding: '10px 14px', borderRadius: '10px', color: '#fff', fontSize: '12px' }}
+                    />
+                    <select
+                      value={filtroStatus}
+                      onChange={(e) => setFiltroStatus(e.target.value)}
+                      style={{ background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 14px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
+                    >
+                      <option value="todos">Todos os Status</option>
+                      <option value="pendente">Pendentes</option>
+                      <option value="aprovado">Aprovados</option>
+                    </select>
+                  </div>
+
+                  {carregandoLeads ? (
+                    <div style={{ padding: '30px', textAlign: 'center', color: '#00ff88', fontSize: '12px' }}>
+                      ⚙️ Carregando prospectos da base de dados...
+                    </div>
+                  ) : leadsFiltrados.length === 0 ? (
+                    <div style={{ padding: '30px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontSize: '12px', border: '1px dashed rgba(255,255,255,0.1)', borderRadius: '12px' }}>
+                      Nenhum prospecto encontrado.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {leadsFiltrados.map((item) => {
+                        const convidado = item.dados?.convidado;
+                        const whatsClean = convidado?.whatsapp?.replace(/\D/g, '') || '';
+                        const msgWhats = encodeURIComponent(`Olá ${convidado?.nome || ''}, vi seu feedback no Quiz do SCOUT.CRC! Vamos conversar sobre seu interesse?`);
+                        const linkWhats = `https://wa.me/55${whatsClean}?text=${msgWhats}`;
+
+                        return (
+                          <div
+                            key={item.id}
+                            style={{
+                              background: 'rgba(0,0,0,0.5)',
+                              border: '1px solid rgba(0,255,136,0.2)',
+                              borderRadius: '14px',
+                              padding: '16px',
+                              display: 'grid',
+                              gridTemplateColumns: '1fr auto',
+                              gap: '14px',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <strong style={{ color: '#fff', fontSize: '14px' }}>
+                                  {convidado?.nome || 'Convidado Sem Nome'}
+                                </strong>
+                                <span style={{ fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '2px 8px', borderRadius: '10px', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 'bold' }}>
+                                  {item.dados?.perfil?.toUpperCase() || 'RESPOSTAS QUIZ'}
+                                </span>
+                              </div>
+
+                              <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', display: 'flex', gap: '12px', marginTop: '2px' }}>
+                                <span>📱 {convidado?.whatsapp || 'Sem WhatsApp'}</span>
+                                {convidado?.cidade && <span>📍 {convidado.cidade}</span>}
+                                <span>📅 {new Date(item.created_at).toLocaleDateString('pt-BR')}</span>
+                              </div>
+
+                              {item.dados?.respostas && (
+                                <div style={{ marginTop: '8px', padding: '8px 12px', background: 'rgba(255,255,255,0.02)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', fontSize: '10px', color: 'rgba(255,255,255,0.7)' }}>
+                                  <strong>Objetivo:</strong> {item.dados.respostas['objetivo'] || 'Não especificado'}
+                                </div>
+                              )}
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: '130px' }}>
+                              {whatsClean && (
+                                <a
+                                  href={linkWhats}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    background: '#00ff88',
+                                    color: '#050505',
+                                    fontWeight: 'bold',
+                                    fontSize: '11px',
+                                    padding: '8px 12px',
+                                    borderRadius: '8px',
+                                    textAlign: 'center',
+                                    textDecoration: 'none',
+                                    display: 'block',
+                                  }}
+                                >
+                                  💬 Iniciar X1
+                                </a>
+                              )}
+                              <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textAlign: 'center' }}>
+                                ID: {item.gestor_id || 'master'}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Módulos Gerais */}
               {gestorDesbloqueado && moduloAtivo && moduloAtivo !== 'Seu SCOUT' && (
                 <div className="sala-dynamic-card">
                   <span className="sala-eyebrow" style={{ color: '#00ff88' }}>MÓDULO OPERACIONAL</span>
@@ -303,6 +486,7 @@ export default function SalaPage() {
                 </div>
               )}
 
+              {/* Visual Padrão */}
               {(!gestorDesbloqueado || !moduloAtivo) && (
                 <div className="sala-hero-art-container">
                   <div className="sala-art-text">
@@ -310,29 +494,6 @@ export default function SalaPage() {
                     <h2>Conexão, Pertencimento e Escala</h2>
                     <p>O ecossistema CRC integra tecnologia de ponta, renda recorrente e desenvolvimento colaborativo.</p>
                   </div>
-
-                  <svg className="sala-neon-network" viewBox="0 0 400 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                      <linearGradient id="neonGrad" x1="0" y1="0" x2="400" y2="240" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#00ff88" stopOpacity="0.8" />
-                        <stop offset="1" stopColor="#2bd9ff" stopOpacity="0.4" />
-                      </linearGradient>
-                      <radialGradient id="glowNode" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(200 120) scale(150)">
-                        <stop stopColor="#00ff88" stopOpacity="0.25" />
-                        <stop offset="1" stopColor="#00ff88" stopOpacity="0" />
-                      </radialGradient>
-                    </defs>
-                    <circle cx="200" cy="120" r="110" fill="url(#glowNode)" />
-                    <path d="M200 120L110 70M200 120L290 70M200 120L150 190M200 120L250 190M110 70L60 120M290 70L340 120M150 190L80 170M250 190L320 170" stroke="url(#neonGrad)" strokeWidth="1.5" strokeOpacity="0.6" />
-                    <circle cx="200" cy="120" r="12" fill="#00ff88" fillOpacity="0.2" stroke="#00ff88" strokeWidth="2" />
-                    <circle cx="200" cy="120" r="4" fill="#00ff88" />
-                    <circle cx="110" cy="70" r="8" fill="#2bd9ff" fillOpacity="0.2" stroke="#2bd9ff" strokeWidth="1.5" />
-                    <circle cx="290" cy="70" r="8" fill="#00ff88" fillOpacity="0.2" stroke="#00ff88" strokeWidth="1.5" />
-                    <circle cx="150" cy="190" r="8" fill="#00ff88" fillOpacity="0.2" stroke="#00ff88" strokeWidth="1.5" />
-                    <circle cx="250" cy="190" r="8" fill="#2bd9ff" fillOpacity="0.2" stroke="#2bd9ff" strokeWidth="1.5" />
-                    <circle cx="60" cy="120" r="6" fill="#fff" fillOpacity="0.3" />
-                    <circle cx="340" cy="120" r="6" fill="#fff" fillOpacity="0.3" />
-                  </svg>
                 </div>
               )}
             </div>
@@ -345,6 +506,7 @@ export default function SalaPage() {
         </footer>
       </div>
 
+      {/* Modal Restrito */}
       {moduloRestrito && (
         <div className="sala-modal-backdrop" onClick={() => setModuloRestrito(null)}>
           <div className="sala-modal" onClick={(event) => event.stopPropagation()}>
@@ -528,7 +690,7 @@ export default function SalaPage() {
           align-items: center;
           justify-content: center;
           border: 1px solid rgba(255, 255, 255, 0.08);
-          border-radius: 9px;
+          border-radius: 99px;
           color: rgba(255, 255, 255, 0.55);
           font-size: 12px;
         }
@@ -644,10 +806,9 @@ export default function SalaPage() {
           box-shadow: 0 20px 50px rgba(0,0,0,0.3);
         }
         .sala-hero-art-container {
-          display: grid;
-          grid-template-columns: 1.2fr 1fr;
-          align-items: center;
-          gap: 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
           background: rgba(255, 255, 255, 0.015);
           border: 1px solid rgba(255, 255, 255, 0.06);
           border-radius: 20px;
@@ -657,16 +818,11 @@ export default function SalaPage() {
           font-size: 22px;
           margin: 6px 0 10px;
           color: #fff;
-          letter-spacing: -0.5px;
         }
         .sala-art-text p {
           font-size: 12px;
           color: rgba(255, 255, 255, 0.5);
           line-height: 1.6;
-        }
-        .sala-neon-network {
-          width: 100%;
-          max-height: 180px;
         }
         .sala-footer {
           display: flex;
