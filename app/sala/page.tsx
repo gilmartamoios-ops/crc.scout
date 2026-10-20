@@ -446,59 +446,58 @@ useEffect(() => {
               <div style={modoVisitante && !gestorDesbloqueado ? { filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.8 } : undefined}>
                 
                 {/* SUBLINK 1: PROSPECTO DIGITAL */}
-                {(gestorDesbloqueado || modoVisitante) && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
-                  <div className="sala-dynamic-card">
-                    {/* CABEÇALHO EXATO SOLICITADO */}
-                    <h3 style={{ fontSize: '20px', margin: '0 0 4px', color: '#fff' }}>Prospecto Digital</h3>
-                    <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
-                      filtre sua busca para encontrar novos Gestores de Comunidade
-                    </p>
+      {(gestorDesbloqueado || modoVisitante) && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
+        <div className="sala-dynamic-card">
+          {/* CABEÇALHO EXATO SOLICITADO */}
+          <h3 style={{ fontSize: '20px', margin: '0 0 4px', color: '#fff' }}>Prospecto Digital</h3>
+          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
+            filtre sua busca para encontrar novos Gestores de Comunidade
+          </p>
+        </div>
+      )}
 
-              </div>
-
-              
-              {modoVisitante && !gestorDesbloqueado && (
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'rgba(5, 5, 5, 0.85)',
-                  backdropFilter: 'blur(6px)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textAlign: 'center',
-                  padding: '24px',
-                  zIndex: 99
-                }}>
-                  <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔒</div>
-                  <h3 style={{ color: '#fff', fontSize: '18px', marginBottom: '8px' }}>
-                    Tecnologia Exclusiva de Inteligência Territorial
-                  </h3>
-                  <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', maxWidth: '400px', lineHeight: '1.5', marginBottom: '24px' }}>
-                    Você está visualizando a ferramenta real de automação. Para destravar a execução operacional e liberar os contatos, preencha sua Ficha de Qualificação.
-                  </p>
-                  
-                  <button
-                    type="button"
-                    onClick={() => { window.location.href = '/?etapa=quiz'; }}
-                    style={{
-                      background: '#00ff88',
-                      color: '#050505',
-                      border: 'none',
-                      padding: '14px 28px',
-                      borderRadius: '12px',
-                      fontWeight: '900',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      letterSpacing: '0.5px',
-                      boxShadow: '0 0 25px rgba(0,255,136,0.4)',
-                    }}
-                  >
-                    PREENCHER QUIZ & DESBLOQUEAR FERRAMENTA →
-                  </button>
-                </div>
-              )}
+      {/* CAPA PROTETORA COM CADEADO E BOTÃO PARA VISITANTES */}
+      {modoVisitante && !gestorDesbloqueado && (
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'rgba(5, 5, 5, 0.85)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          textAlign: 'center',
+          padding: '24px',
+          zIndex: 99
+        }}>
+          <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔒</div>
+          <h3 style={{ color: '#fff', fontSize: '18px', marginBottom: '8px' }}>
+            Tecnologia Exclusiva de Inteligência Territorial
+          </h3>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', maxWidth: '400px', lineHeight: '1.5', marginBottom: '24px' }}>
+            Você está visualizando a ferramenta real de automação. Para destravar a execução operacional e liberar os contatos, preencha sua Ficha de Qualificação.
+          </p>
+          <button
+            type="button"
+            onClick={() => { window.location.href = '/?etapa=quiz'; }}
+            style={{
+              background: '#00ff88',
+              color: '#050505',
+              border: 'none',
+              padding: '14px 28px',
+              borderRadius: '12px',
+              fontWeight: '900',
+              fontSize: '12px',
+              cursor: 'pointer',
+              letterSpacing: '0.5px',
+              boxShadow: '0 0 25px rgba(0,255,136,0.4)',
+            }}
+          >
+            PREENCHER QUIZ & DESBLOQUEAR FERRAMENTA →
+          </button>
+        </div>
+      )}
 
                   {/* CARD EXPLICATIVO DA LEI DAS MÉDIAS */}
                   <div style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.06), rgba(0,0,0,0.5))', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '14px', padding: '16px 18px', marginBottom: '20px' }}>
@@ -648,7 +647,7 @@ useEffect(() => {
                                 </p>
                               </div>
 
-                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(linkBaseGestor);
@@ -694,6 +693,50 @@ useEffect(() => {
                       </div>
                     </div>
                   )}
+
+                  {/* CAPA PROTETORA COM CADEADO E BOTÃO PARA VISITANTES */}
+                  {modoVisitante && !gestorDesbloqueado && (
+                    <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'rgba(5, 5, 5, 0.85)',
+                      backdropFilter: 'blur(6px)',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      textAlign: 'center',
+                      padding: '24px',
+                      zIndex: 99
+                    }}>
+                      <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔒</div>
+                      <h3 style={{ color: '#fff', fontSize: '18px', marginBottom: '8px' }}>
+                        Tecnologia Exclusiva de Inteligência Territorial
+                      </h3>
+                      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', maxWidth: '400px', lineHeight: '1.5', marginBottom: '24px' }}>
+                        Você está visualizando a ferramenta real de automação. Para destravar a execução operacional e liberar os contatos, preencha sua Ficha de Qualificação.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => { window.location.href = '/?etapa=quiz'; }}
+                        style={{
+                          background: '#00ff88',
+                          color: '#050505',
+                          border: 'none',
+                          padding: '14px 28px',
+                          borderRadius: '12px',
+                          fontWeight: '900',
+                          fontSize: '12px',
+                          cursor: 'pointer',
+                          letterSpacing: '0.5px',
+                          boxShadow: '0 0 25px rgba(0,255,136,0.4)',
+                        }}
+                      >
+                        PREENCHER QUIZ & DESBLOQUEAR FERRAMENTA →
+                      </button>
+                    </div>
+                  )}
+
                 </div>
               )}
 
