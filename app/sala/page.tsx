@@ -446,52 +446,276 @@ useEffect(() => {
               <div style={modoVisitante && !gestorDesbloqueado ? { filter: 'blur(4px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.8 } : undefined}>
                 
                 {/* SUBLINK 1: PROSPECTO DIGITAL */}
-      {(gestorDesbloqueado || modoVisitante) && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
-        <div className="sala-dynamic-card">
-          {/* CABEÇALHO EXATO SOLICITADO */}
-          <h3 style={{ fontSize: '20px', margin: '0 0 4px', color: '#fff' }}>Prospecto Digital</h3>
-          <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
-            filtre sua busca para encontrar novos Gestores de Comunidade
+{(gestorDesbloqueado || modoVisitante) && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
+  <div className="sala-dynamic-card">
+    
+    {/* CABEÇALHO EXATO SOLICITADO */}
+    <h3 style={{ fontSize: '20px', margin: '0 0 4px', color: '#fff' }}>Prospecto Digital</h3>
+    <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.6)', marginBottom: '16px' }}>
+      filtre sua busca para encontrar novos Gestores de Comunidade
+    </p>
+
+    {/* ÁREA DA FERRAMENTA COM POSICIONAMENTO RELATIVO PARA O OVERLAY */}
+    <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden' }}>
+
+      {/* CONTEÚDO OPERACIONAL AO FUNDO (Fica borrado para visitantes, 100% visível para gestores) */}
+      <div style={{ 
+        filter: modoVisitante && !gestorDesbloqueado ? 'blur(6px)' : 'none',
+        opacity: modoVisitante && !gestorDesbloqueado ? 0.35 : 1,
+        pointerEvents: modoVisitante && !gestorDesbloqueado ? 'none' : 'auto',
+        transition: 'all 0.3s ease'
+      }}>
+
+        {/* CARD EXPLICATIVO DA LEI DAS MÉDIAS */}
+        <div style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.06), rgba(0,0,0,0.5))', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '14px', padding: '16px 18px', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+            <span style={{ fontSize: '12px' }}>📊</span>
+            <strong style={{ color: '#00ff88', fontSize: '13px', letterSpacing: '0.5px' }}>
+              O SCOUT DO CRC OPERA SEGUNDO LA LEI DAS MÉDIAS.
+            </strong>
+          </div>
+          <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: 'rgba(255,255,255,0.85)', lineHeight: '1.5' }}>
+            <strong>A Lei das Médias é o princípio de que, quanto maior o número de pessoas apresentadas ao negócio, maior a probabilidade de resultados.</strong>
+          </p>
+          <p style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5' }}>
+            Exemplo: de cada 20 pessoas abordadas, 4 demonstram interesse.
+          </p>
+          <p style={{ margin: 0, fontSize: '11px', color: 'rgba(255,255,255,0.55)', fontStyle: 'italic', lineHeight: '1.5' }}>
+            A qualidade da abordagem e o perfil das pessoas influenciam os resultados.
           </p>
         </div>
-      )}
 
-      {/* CAPA PROTETORA COM CADEADO E BOTÃO PARA VISITANTES */}
-      {modoVisitante && !gestorDesbloqueado && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'rgba(5, 5, 5, 0.85)',
-          backdropFilter: 'blur(6px)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          textAlign: 'center',
-          padding: '24px',
-          zIndex: 99
-        }}>
-          <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔒</div>
-          <h3 style={{ color: '#fff', fontSize: '18px', marginBottom: '8px' }}>
-            Tecnologia Exclusiva de Inteligência Territorial
-          </h3>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', maxWidth: '400px', lineHeight: '1.5', marginBottom: '24px' }}>
-            Você está visualizando a ferramenta real de automação. Para destravar a execução operacional e liberar os contatos, preencha sua Ficha de Qualificação.
-          </p>
+        {/* SELETORES */}
+        <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '14px', alignItems: 'center', marginBottom: '18px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>📍 ESTADO (UF):</label>
+              <select
+                value={estadoSelecionado}
+                onChange={(e) => setEstadoSelecionado(e.target.value)}
+                style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
+              >
+                {estadosBrasil.map((uf) => (
+                  <option key={uf} value={uf}>{uf}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
+                🏙️ MUNICÍPIO ({carregandoCidades ? 'Carregando IBGE...' : `${municipiosDoEstado.length} cidades`}):
+              </label>
+              <select
+                value={municipioSelecionado}
+                onChange={(e) => setMunicipioSelecionado(e.target.value)}
+                disabled={carregandoCidades}
+                style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
+              >
+                {municipiosDoEstado.map((cidade) => (
+                  <option key={cidade} value={cidade}>{cidade}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', fontWeight: 'bold', marginBottom: '10px' }}>
+            PILAR DE ATRAÇÃO SELECIONADO:
+          </label>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
+            <button
+              type="button"
+              onClick={() => setNichoPfSelecionado('transicao')}
+              style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : '#fff', border: nichoPfSelecionado === 'transicao' ? '1px solid #00ff88' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+            >
+              <strong style={{ display: 'block', fontSize: '12px' }}>💼 Transição Profissional</strong>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setNichoPfSelecionado('liberais')}
+              style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : '#fff', border: nichoPfSelecionado === 'liberais' ? '1px solid #2bd9ff' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+            >
+              <strong style={{ display: 'block', fontSize: '12px' }}>🩺 Saúde & Ozonioterapia</strong>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setNichoPfSelecionado('consumo')}
+              style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : '#fff', border: nichoPfSelecionado === 'consumo' ? '1px solid #ffd700' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
+            >
+              <strong style={{ display: 'block', fontSize: '12px' }}>🛒 Consumo Consciente</strong>
+            </button>
+          </div>
+        </div>
+
+        {/* BOTÃO DE GARIMPO DIGITAL DE TERRITÓRIO */}
+        <div style={{ marginBottom: '20px', textAlign: 'right' }}>
           <button
             type="button"
-            onClick={() => { window.location.href = '/?etapa=quiz'; }}
+            onClick={executarGarimpoTerritorial}
             style={{
-              background: '#00ff88',
+              background: 'linear-gradient(135deg, #00ff88, #00cc6a)',
               color: '#050505',
               border: 'none',
-              padding: '14px 28px',
+              padding: '12px 24px',
               borderRadius: '12px',
               fontWeight: '900',
               fontSize: '12px',
               cursor: 'pointer',
               letterSpacing: '0.5px',
-              boxShadow: '0 0 25px rgba(0,255,136,0.4)',
+              boxShadow: '0 4px 15px rgba(0,255,136,0.3)',
+            }}
+          >
+            ⚡ EXECUTAR GARIMPO DIGITAL DE TERRITÓRIO
+          </button>
+        </div>
+
+        {/* LISTAGEM DOS PERFIS ALVO GARIMPADOS */}
+        {executouGarimpo && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h4 style={{ fontSize: '14px', color: '#fff', margin: 0 }}>
+                ⚡ Lote Ativo para {municipioSelecionado} {estadoSelecionado} ({perfisGarimpados.length} Perfis Alvo Prontos)
+              </h4>
+              <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
+                💡 Copie o link ou envie o Santinho Digital diretamente
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
+              {perfisGarimpados.map((lead, index) => {
+                const msgSantinho = encodeURIComponent(`Olá ${lead.nome}! Notei seu perfil em ${lead.regiao} (${lead.perfil}). Convidamos você a conhecer o ecossistema CRC. Assista ao vídeo e conheça nossa comunidade: ${linkBaseGestor}`);
+                const linkWhatsSantinho = `https://wa.me/55${lead.whats}?text=${msgSantinho}`;
+
+                return (
+                  <div
+                    key={index}
+                    style={{
+                      background: 'rgba(0,0,0,0.4)',
+                      border: '1px solid rgba(0,255,136,0.2)',
+                      borderRadius: '12px',
+                      padding: '14px',
+                      display: 'grid',
+                      gridTemplateColumns: '1fr auto',
+                      gap: '12px',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <strong style={{ color: '#fff', fontSize: '13px' }}>{lead.nome}</strong>
+                        <span style={{ fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
+                          {lead.regiao}
+                        </span>
+                      </div>
+                      <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>
+                        🎯 <strong>Perfil Alvo:</strong> {lead.perfil}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(linkBaseGestor);
+                          alert(`📋 Link do SCOUT copiado com sucesso!`);
+                        }}
+                        style={{
+                          background: 'rgba(255,255,255,0.06)',
+                          border: '1px solid rgba(0,255,136,0.3)',
+                          color: '#00ff88',
+                          fontWeight: 'bold',
+                          fontSize: '11px',
+                          padding: '8px 10px',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        📋 Copiar Link
+                      </button>
+
+                      <a
+                        href={linkWhatsSantinho}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          background: '#00ff88',
+                          color: '#050505',
+                          fontWeight: 'bold',
+                          fontSize: '11px',
+                          padding: '8px 12px',
+                          borderRadius: '8px',
+                          textDecoration: 'none',
+                          textAlign: 'center',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        📨 Enviar Santinho Digital
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+      </div>
+
+      {/* CARD FLUTUANTE DE CONVERSÃO PARA VISITANTES (Centralizado em primeiro plano, explicando o propósito) */}
+      {modoVisitante && !gestorDesbloqueado && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90%',
+          maxWidth: '440px',
+          background: 'linear-gradient(145deg, rgba(10, 15, 12, 0.96), rgba(5, 5, 5, 0.99))',
+          border: '1px solid rgba(0, 255, 136, 0.45)',
+          borderRadius: '16px',
+          padding: '28px 24px',
+          textAlign: 'center',
+          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0,255,136,0.15)',
+          zIndex: 50
+        }}>
+          <div style={{ fontSize: '32px', marginBottom: '10px' }}>🔒</div>
+          
+          <h3 style={{ 
+            color: '#fff', 
+            fontSize: '17px', 
+            fontWeight: '800', 
+            marginBottom: '8px',
+            letterSpacing: '0.3px' 
+          }}>
+            Prospecto Digital & Inteligência Territorial
+          </h3>
+          
+          <p style={{ 
+            color: 'rgba(255,255,255,0.75)', 
+            fontSize: '12px', 
+            lineHeight: '1.5', 
+            marginBottom: '20px' 
+          }}>
+            Esta ferramenta automatiza o garimpo de novos Gestores de Comunidade por estado e município com base na Lei das Médias. Preencha sua Ficha de Qualificação para liberar o acesso operacional completo.
+          </p>
+
+          <button
+            type="button"
+            onClick={() => { window.location.href = '/?etapa=quiz'; }}
+            style={{
+              width: '100%',
+              background: '#00ff88',
+              color: '#050505',
+              border: 'none',
+              padding: '13px 20px',
+              borderRadius: '10px',
+              fontWeight: '900',
+              fontSize: '12px',
+              cursor: 'pointer',
+              letterSpacing: '0.5px',
+              boxShadow: '0 0 20px rgba(0,255,136,0.35)',
             }}
           >
             PREENCHER QUIZ & DESBLOQUEAR FERRAMENTA →
@@ -499,247 +723,9 @@ useEffect(() => {
         </div>
       )}
 
-                  {/* CARD EXPLICATIVO DA LEI DAS MÉDIAS */}
-                  <div style={{ background: 'linear-gradient(135deg, rgba(0,255,136,0.06), rgba(0,0,0,0.5))', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '14px', padding: '16px 18px', marginBottom: '20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                      <span style={{ fontSize: '12px' }}>📊</span>
-                      <strong style={{ color: '#00ff88', fontSize: '13px', letterSpacing: '0.5px' }}>
-                        O SCOUT DO CRC OPERA SEGUNDO A LEI DAS MÉDIAS.
-                      </strong>
-                    </div>
-                    <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: 'rgba(255,255,255,0.85)', lineHeight: '1.5' }}>
-                      <strong>A Lei das Médias é o princípio de que, quanto maior o número de pessoas apresentadas ao negócio, maior a probabilidade de resultados.</strong>
-                    </p>
-                    <p style={{ margin: '0 0 6px 0', fontSize: '11px', color: 'rgba(255,255,255,0.7)', lineHeight: '1.5' }}>
-                      Exemplo: de cada 20 pessoas abordadas, 4 demonstram interesse.
-                    </p>
-                    <p style={{ margin: 0, fontSize: '11px', color: 'rgba(255,255,255,0.55)', fontStyle: 'italic', lineHeight: '1.5' }}>
-                      A qualidade da abordagem e o perfil das pessoas influenciam os resultados.
-                    </p>
-                  </div>
-
-                  {/* SELETORES */}
-                  <div style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(0,255,136,0.3)', borderRadius: '16px', padding: '20px', marginBottom: '22px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '14px', alignItems: 'center', marginBottom: '18px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>📍 ESTADO (UF):</label>
-                        <select
-                          value={estadoSelecionado}
-                          onChange={(e) => setEstadoSelecionado(e.target.value)}
-                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#00ff88', fontSize: '12px', fontWeight: 'bold' }}
-                        >
-                          {estadosBrasil.map((uf) => (
-                            <option key={uf} value={uf}>{uf}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '10px', color: '#00ff88', fontWeight: 'bold', marginBottom: '6px' }}>
-                          🏙️ MUNICÍPIO ({carregandoCidades ? 'Carregando IBGE...' : `${municipiosDoEstado.length} cidades`}):
-                        </label>
-                        <select
-                          value={municipioSelecionado}
-                          onChange={(e) => setMunicipioSelecionado(e.target.value)}
-                          disabled={carregandoCidades}
-                          style={{ width: '100%', background: '#050505', border: '1px solid rgba(0,255,136,0.3)', padding: '10px 12px', borderRadius: '10px', color: '#fff', fontSize: '12px', fontWeight: 'bold' }}
-                        >
-                          {municipiosDoEstado.map((cidade) => (
-                            <option key={cidade} value={cidade}>{cidade}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <label style={{ display: 'block', fontSize: '10px', color: 'rgba(255,255,255,0.5)', fontWeight: 'bold', marginBottom: '10px' }}>
-                      PILAR DE ATRAÇÃO SELECIONADO:
-                    </label>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-                      <button
-                        type="button"
-                        onClick={() => setNichoPfSelecionado('transicao')}
-                        style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'transicao' ? 'rgba(0,255,136,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'transicao' ? '#00ff88' : '#fff', border: nichoPfSelecionado === 'transicao' ? '1px solid #00ff88' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
-                      >
-                        <strong style={{ display: 'block', fontSize: '12px' }}>💼 Transição Profissional</strong>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setNichoPfSelecionado('liberais')}
-                        style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'liberais' ? 'rgba(43,217,255,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'liberais' ? '#2bd9ff' : '#fff', border: nichoPfSelecionado === 'liberais' ? '1px solid #2bd9ff' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
-                      >
-                        <strong style={{ display: 'block', fontSize: '12px' }}>🩺 Saúde & Ozonioterapia</strong>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setNichoPfSelecionado('consumo')}
-                        style={{ padding: '12px', borderRadius: '12px', cursor: 'pointer', background: nichoPfSelecionado === 'consumo' ? 'rgba(255,215,0,0.18)' : 'rgba(255,255,255,0.03)', color: nichoPfSelecionado === 'consumo' ? '#ffd700' : '#fff', border: nichoPfSelecionado === 'consumo' ? '1px solid #ffd700' : '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}
-                      >
-                        <strong style={{ display: 'block', fontSize: '12px' }}>🛒 Consumo Consciente</strong>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* BOTÃO DE GARIMPO DIGITAL DE TERRITÓRIO */}
-                  <div style={{ marginBottom: '20px', textAlign: 'right' }}>
-                    <button
-                      type="button"
-                      onClick={executarGarimpoTerritorial}
-                      style={{
-                        background: 'linear-gradient(135deg, #00ff88, #00cc6a)',
-                        color: '#050505',
-                        border: 'none',
-                        padding: '12px 24px',
-                        borderRadius: '12px',
-                        fontWeight: '900',
-                        fontSize: '12px',
-                        cursor: 'pointer',
-                        letterSpacing: '0.5px',
-                        boxShadow: '0 4px 15px rgba(0,255,136,0.3)',
-                      }}
-                    >
-                      ⚡ EXECUTAR GARIMPO DIGITAL DE TERRITÓRIO
-                    </button>
-                  </div>
-
-                  {/* LISTAGEM DOS PERFIS ALVO GARIMPADOS */}
-                  {executouGarimpo && (
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                        <h4 style={{ fontSize: '14px', color: '#fff', margin: 0 }}>
-                          ⚡ Lote Ativo para {municipioSelecionado} - {estadoSelecionado} ({perfisGarimpados.length} Perfis Alvo Prontos)
-                        </h4>
-                        <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)' }}>
-                          💡 Copie o link ou envie o Santinho Digital diretamente
-                        </span>
-                      </div>
-
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '420px', overflowY: 'auto', paddingRight: '4px' }}>
-                        {perfisGarimpados.map((lead, index) => {
-                          const msgSantinho = encodeURIComponent(`Olá ${lead.nome}! Notei seu perfil em ${lead.regiao} (${lead.perfil}). Convidamos você a conhecer o ecossistema CRC. Assista ao vídeo e conheça nossa comunidade: ${linkBaseGestor}`);
-                          const linkWhatsSantinho = `https://wa.me/55${lead.whats}?text=${msgSantinho}`;
-
-                          return (
-                            <div
-                              key={index}
-                              style={{
-                                background: 'rgba(0,0,0,0.4)',
-                                border: '1px solid rgba(0,255,136,0.2)',
-                                borderRadius: '12px',
-                                padding: '14px',
-                                display: 'grid',
-                                gridTemplateColumns: '1fr auto',
-                                gap: '12px',
-                                alignItems: 'center',
-                              }}
-                            >
-                              <div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                  <strong style={{ color: '#fff', fontSize: '13px' }}>{lead.nome}</strong>
-                                  <span style={{ fontSize: '9px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>
-                                    {lead.regiao}
-                                  </span>
-                                </div>
-                                <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.6)', margin: '4px 0 0' }}>
-                                  🎯 <strong>Perfil Alvo:</strong> {lead.perfil}
-                                </p>
-                              </div>
-
-                             <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <button
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(linkBaseGestor);
-                                    alert(`📋 Link do SCOUT copiado com sucesso!`);
-                                  }}
-                                  style={{
-                                    background: 'rgba(255,255,255,0.06)',
-                                    border: '1px solid rgba(0,255,136,0.3)',
-                                    color: '#00ff88',
-                                    fontWeight: 'bold',
-                                    fontSize: '11px',
-                                    padding: '8px 10px',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  📋 Copiar Link
-                                </button>
-
-                                <a
-                                  href={linkWhatsSantinho}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    background: '#00ff88',
-                                    color: '#050505',
-                                    fontWeight: 'bold',
-                                    fontSize: '11px',
-                                    padding: '8px 12px',
-                                    borderRadius: '8px',
-                                    textDecoration: 'none',
-                                    textAlign: 'center',
-                                    whiteSpace: 'nowrap',
-                                  }}
-                                >
-                                  📨 Enviar Santinho Digital
-                                </a>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* CAPA PROTETORA COM CADEADO E BOTÃO PARA VISITANTES */}
-                  {modoVisitante && !gestorDesbloqueado && (
-                    <div style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: 'rgba(5, 5, 5, 0.85)',
-                      backdropFilter: 'blur(6px)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      textAlign: 'center',
-                      padding: '24px',
-                      zIndex: 99
-                    }}>
-                      <div style={{ fontSize: '40px', marginBottom: '12px' }}>🔒</div>
-                      <h3 style={{ color: '#fff', fontSize: '18px', marginBottom: '8px' }}>
-                        Tecnologia Exclusiva de Inteligência Territorial
-                      </h3>
-                      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '12px', maxWidth: '400px', lineHeight: '1.5', marginBottom: '24px' }}>
-                        Você está visualizando a ferramenta real de automação. Para destravar a execução operacional e liberar os contatos, preencha sua Ficha de Qualificação.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => { window.location.href = '/?etapa=quiz'; }}
-                        style={{
-                          background: '#00ff88',
-                          color: '#050505',
-                          border: 'none',
-                          padding: '14px 28px',
-                          borderRadius: '12px',
-                          fontWeight: '900',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                          letterSpacing: '0.5px',
-                          boxShadow: '0 0 25px rgba(0,255,136,0.4)',
-                        }}
-                      >
-                        PREENCHER QUIZ & DESBLOQUEAR FERRAMENTA →
-                      </button>
-                    </div>
-                  )}
-
-                </div>
-              )}
-
+    </div>
+  </div>
+)}
               {/* SUBLINK 2: SANTINHO DIGITAL */}
               {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Santinho Digital' && (
                 <div className="sala-dynamic-card">
