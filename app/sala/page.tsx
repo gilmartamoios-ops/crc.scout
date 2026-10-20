@@ -66,6 +66,7 @@ export default function SalaPage() {
   const [subModuloAtivo, setSubModuloAtivo] = useState<string | null>('Prospecto Digital');
   const [moduloRestrito, setModuloRestrito] = useState<Modulo | null>(null);
   const [gestorDesbloqueado, setGestorDesbloqueado] = useState(false);
+  const [modoVisitante, setModoVisitante] = useState(false);
 
   const [gestor, setGestor] = useState<{
     id: string;
