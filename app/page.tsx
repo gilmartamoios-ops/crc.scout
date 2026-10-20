@@ -1,24 +1,23 @@
 'use client';
 
 import Image from 'next/image';
+import Script from 'next/script';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
-
-type Perfil = 'gestor' | 'cliente' | 'ambos' | '';
 
 interface Respostas {
   objetivo: string;
 }
 
 export default function LandingPage() {
-  // Passos da jornada: 
+  // Passos da jornada:
   // 1 = Santinho Digital
   // 2 = Mini-APN
   // 2.2 = Aviso de Rigor Técnico
-  // 2.4 = Simulador de Negócio
-  // 2.6 = Sala de Operações (Modo Visitante 🔒)
-  // 3 = Quiz
-  // 8 = Formulário de Cadastro
+  // 2.4 = Simulador de Negócio Original (Gráfico Chart.js + DataLabels + Layout 2 Colunas)
+  // 2.6 = Sala de Operações (Modo Visitante 🔒 Completo)
+  // 3 = Quiz de Qualificação
+  // 8 = Formulário de Cadastro Direto
   // 9 = Sucesso / Tela Final Desfocada (Blur)
   const [etapa, setEtapa] = useState<number>(1);
   const [isMuted, setIsMuted] = useState(true);
@@ -35,8 +34,15 @@ export default function LandingPage() {
   const [erro, setErro] = useState('');
   const [gestorId, setGestorId] = useState<string | null>(null);
 
+  // Estados do Simulador de Negócio MMN
+  const [gestoresSelect, setGestoresSelect] = useState<string>('4');
+  const [consumoSelect, setConsumoSelect] = useState<string>('450');
+  const [infoContent, setInfoContent] = useState<string>('');
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const santinhoVideoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const chartInstanceRef = useRef<any>(null);
 
   const perguntas = useMemo(
     () => [
@@ -70,6 +76,145 @@ export default function LandingPage() {
     }
   }, []);
 
+  // Executa o motor da simulação oficial e renderiza o gráfico Chart.js + DataLabels
+  useEffect(() => {
+    if (etapa === 2.4) {
+      simular();
+    }
+  }, [etapa, gestoresSelect, consumoSelect]);
+
+  const simulacaoOficial: Record<string, Array<{ etapa: number; gcom: number; plano: string; total: number }>> = {
+    "4_450": [
+      { etapa: 1, gcom: 4, plano: "Executivo", total: 360.00 },
+      { etapa: 2, gcom: 24, plano: "Ônix", total: 1186.00 },
+      { etapa: 3, gcom: 108, plano: "Jaspe", total: 7038.00 },
+      { etapa: 4, gcom: 448, plano: "Jade", total: 21240.00 },
+      { etapa: 5, gcom: 1812, plano: "Dream Red", total: 68094.00 }
+    ],
+    "3_450": [
+      { etapa: 1, gcom: 3, plano: "Executivo", total: 270.00 },
+      { etapa: 2, gcom: 15, plano: "Topázio", total: 634.50 },
+      { etapa: 3, gcom: 54, plano: "Ametista", total: 3915.00 },
+      { etapa: 4, gcom: 174, plano: "Diamante Negro", total: 13392.00 },
+      { etapa: 5, gcom: 537, plano: "Jaspe", total: 41094.00 }
+    ],
+    "2_450": [
+      { etapa: 1, gcom: 2, plano: "Executivo", total: 180.00 },
+      { etapa: 2, gcom: 8, plano: "Topázio", total: 378.00 },
+      { etapa: 3, gcom: 22, plano: "Ônix", total: 1310.00 },
+      { etapa: 4, gcom: 52, plano: "Ametista", total: 2710.00 },
+      { etapa: 5, gcom: 114, plano: "Diamante Negro", total: 6552.00 }
+    ]
+  };
+
+  const textosExplicativos: Record<string, string> = {
+    "2": "<strong>🌱 Modo Iniciante (2 Gestores)</strong><p>Entrada com alta facilidade de duplicação. A partir da 3ª etapa, o bônus cobre integralmente o cartão de crédito da compra inicial e gera lucro líquido crescente com baixo esforço.</p>",
+    "3": "<strong>🚀 Modo Expansão (3 Gestores)</strong><p>Equilíbrio ideal entre duplicação e velocidade. Acelera os ganhos de Unilevel e alcança a faixa de R$ 3.900 a R$ 13.000 já entre a 3ª e 4ª etapa.</p>",
+    "4": "<strong>💼 Modo Executivo (4 Gestores)</strong><p>O padrão de máxima performance. Otimiza a pontuação por linha (VML), garante Bônus Evolution e PLR acelerados, atingindo graduações de elite (Jaspe e Jade) com solidez.</p>"
+  };
+
+  const simular = () => {
+    const d = parseInt(gestoresSelect);
+    const c = parseFloat(consumoSelect);
+
+    const key = `${d}_${c}`;
+    let dadosEtapas = [];
+
+    if (simulacaoOficial[key]) {
+      dadosEtapas = simulacaoOficial[key];
+    } else {
+      let gcomAcum = 0;
+      for (let e = 1; e <= 5; e++) {
+        let novos = Math.pow(d, e);
+        gcomAcum += novos;
+        let fator = (c / 450) * (d / 4);
+        let baseTotal = 0;
+        if (e === 1) baseTotal = 360 * fator;
+        else if (e === 2) baseTotal = 1186 * fator;
+        else if (e === 3) baseTotal = 7038 * fator;
+        else if (e === 4) baseTotal = 21240 * fator;
+        else if (e === 5) baseTotal = 68094 * fator;
+
+        let planoNome = e === 1 ? "Executivo" : (e === 2 ? "Topázio" : (e === 3 ? "Jaspe" : (e === 4 ? "Jade" : "Dream Red")));
+
+        dadosEtapas.push({ etapa: e, gcom: gcomAcum, plano: planoNome, total: baseTotal });
+      }
+    }
+
+    const labels = dadosEtapas.map(item => `${item.etapa}ª Etapa\n(${item.plano})`);
+    const valoresGanhos = dadosEtapas.map(item => item.total);
+    const gcomsList = dadosEtapas.map(item => item.gcom);
+
+    setInfoContent(textosExplicativos[d.toString()] || "");
+    renderizarGrafico(labels, valoresGanhos, gcomsList);
+  };
+
+  const renderizarGrafico = (labels: string[], dadosValores: number[], dadosGcom: number[]) => {
+    if (!canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    if (!ctx) return;
+
+    if (chartInstanceRef.current) {
+      chartInstanceRef.current.destroy();
+    }
+
+    // @ts-ignore
+    if (typeof Chart !== 'undefined') {
+      // @ts-ignore
+      if (typeof ChartDataLabels !== 'undefined') {
+        // @ts-ignore
+        Chart.register(ChartDataLabels);
+      }
+
+      // @ts-ignore
+      chartInstanceRef.current = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Ganhos (R$)',
+            data: dadosValores,
+            backgroundColor: '#00ff88',
+            borderRadius: 6,
+            barThickness: 'flex'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 35, left: 5, right: 5, bottom: 5 }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: { enabled: true },
+            datalabels: {
+              anchor: 'end',
+              align: 'end',
+              offset: 2,
+              color: '#00ff88',
+              font: { weight: 'bold', size: 10 },
+              formatter: function(value: number, context: any) {
+                const index = context.dataIndex;
+                const gcomCount = dadosGcom[index];
+                const valorFormatado = 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return `${gcomCount} GCom\n${valorFormatado}`;
+              },
+              textAlign: 'center'
+            }
+          },
+          scales: {
+            y: { display: false, grid: { display: false } },
+            x: {
+              grid: { display: false },
+              ticks: { color: '#ffffff', font: { size: 10, weight: 'bold' } }
+            }
+          }
+        }
+      });
+    }
+  };
+
   const toggleAudio = () => {
     if (santinhoVideoRef.current) {
       santinhoVideoRef.current.muted = !isMuted;
@@ -87,7 +232,7 @@ export default function LandingPage() {
   };
 
   const handleVideoEnded = () => {
-    setEtapa(2.2); // Avança automaticamente para o Aviso de Rigor Técnico após a Mini-APN
+    setEtapa(2.2);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -126,7 +271,7 @@ export default function LandingPage() {
 
     setEnviado(true);
     setCarregando(false);
-    setEtapa(9); // Tela final com desfoque e bloqueio de retorno
+    setEtapa(9);
   };
 
   const voltar = () => {
@@ -138,10 +283,14 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="scout-landing" style={{ position: 'relative', minHeight: '100vh', background: '#050505' }}>
+    <main className="scout-landing" style={{ position: 'relative', minHeight: '100vh', background: '#050505', color: '#fff' }}>
       
-      {/* SE A ETAPA FOR 9, APLICA O DESFOQUE GLOBAL NA TELA DE FUNDO */}
-      <div style={etapa === 9 ? { filter: 'blur(16px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.4 } : undefined}>
+      {/* Scripts Globais do Chart.js e Plugin DataLabels */}
+      <Script src="https://cdn.jsdelivr.net/npm/chart.js" strategy="beforeInteractive" />
+      <Script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0" strategy="beforeInteractive" />
+
+      {/* Camada Desfocada para a Etapa Final (Blur) */}
+      <div style={etapa === 9 ? { filter: 'blur(16px)', pointerEvents: 'none', userSelect: 'none', opacity: 0.35 } : undefined}>
         
         <div className="scout-shell">
           <header className="scout-header">
@@ -304,83 +453,115 @@ export default function LandingPage() {
             </section>
           )}
 
-          {/* ETAPA 2.4: SIMULADOR DE NEGÓCIO */}
+          {/* ETAPA 2.4: SIMULADOR DE NEGÓCIO ORIGINAL (ESTILO E MOTOR IDÊNTICOS AO CÓDIGO HTML/CSS ORIGINAL) */}
           {etapa === 2.4 && (
-            <section className="scout-content scout-content-narrow" style={{ textAlign: 'center', padding: '30px 20px' }}>
-              <div className="scout-eyebrow" style={{ color: '#00ff88', marginBottom: '6px' }}>PROJEÇÃO DE BONIFICAÇÃO</div>
-              <h2 className="scout-section-title" style={{ fontSize: '22px', marginBottom: '16px' }}>Simulador de Negócio MMN.CRC</h2>
+            <section className="scout-content" style={{ padding: '12px' }}>
+              <div className="card-simulador-original">
+                <div className="eyebrow-sim">CRC | Modelo de Comunidades</div>
+                <h1 className="title-sim">Simulação de Expansão da Comunidade</h1>
+                <p className="subtitle-sim">Projeção baseada em GCom - gestores de comunidade e consumo recorrente.</p>
 
-              <div style={{ background: 'rgba(0,0,0,0.6)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(0,255,136,0.3)', marginBottom: '24px', textAlign: 'left' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
-                  <span style={{ color: 'rgba(255,255,255,0.6)' }}>Duplicação Estimada:</span>
-                  <strong style={{ color: '#00ff88' }}>5 Gestores na 1ª Linha</strong>
+                {/* Filtros com os Selects */}
+                <div className="sim-grid-original">
+                  <div>
+                    <label className="sim-label-original">Novos GCom (Gestores de Comunidade) por etapa</label>
+                    <select
+                      value={gestoresSelect}
+                      onChange={(e) => setGestoresSelect(e.target.value)}
+                      className="sim-select-original"
+                    >
+                      <option value="2">2 Novos Gestores / Etapa (Modo Iniciante)</option>
+                      <option value="3">3 Novos Gestores / Etapa (Modo Expansão)</option>
+                      <option value="4">4 Novos Gestores / Etapa (Modo Executivo)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="sim-label-original">Consumo Recorrente Mensal da Comunidade</label>
+                    <select
+                      value={consumoSelect}
+                      onChange={(e) => setConsumoSelect(e.target.value)}
+                      className="sim-select-original"
+                    >
+                      <option value="300">R$ 300,00</option>
+                      <option value="450">R$ 450,00 (Padrão Executivo - Recomendado)</option>
+                      <option value="500">R$ 500,00</option>
+                    </select>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '12px' }}>
-                  <span style={{ color: 'rgba(255,255,255,0.6)' }}>Consumo Familiar Base:</span>
-                  <strong style={{ color: '#00ff88' }}>300 Pontos/Mês</strong>
+
+                {/* Wrapper de 2 Colunas: Texto à esquerda + Gráfico à direita */}
+                <div className="sim-body-wrapper-original">
+                  <div className="info-col-left-original">
+                    <div dangerouslySetInnerHTML={{ __html: infoContent }} />
+                  </div>
+                  <div className="chart-col-right-original">
+                    <canvas ref={canvasRef} id="meuGraficoCanvas"></canvas>
+                  </div>
                 </div>
-                <div style={{ borderTop: '1px dashed rgba(0,255,136,0.2)', paddingTop: '12px', marginTop: '10px', display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '13px' }}>Renda Recorrente:</span>
-                  <strong style={{ color: '#00ff88', fontSize: '18px' }}>R$ 4.250,00 / mês</strong>
+
+                <div className="retorno-scout-original">
+                  <button
+                    type="button"
+                    onClick={() => setEtapa(2.6)}
+                    className="btn-avancar-simulador-oficial"
+                  >
+                    ⚡ VISITE A SALA DE OPERAÇÕES DO SEU FUTURO NEGÓCIO <span>→</span>
+                  </button>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setEtapa(2.6)}
-                style={{
-                  background: 'linear-gradient(135deg, #00ff88, #00cc6a)',
-                  color: '#050505',
-                  border: 'none',
-                  padding: '16px 20px',
-                  borderRadius: '14px',
-                  fontWeight: '900',
-                  fontSize: '12px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 20px rgba(0,255,136,0.35)',
-                  width: '100%',
-                }}
-              >
-                ⚡ VISITE A SALA DE OPERAÇÕES DO SEU FUTURO NEGÓCIO →
-              </button>
-              <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '12px' }}>
-                ← Voltar
-              </button>
             </section>
           )}
 
-          {/* ETAPA 2.6: SALA DE OPERAÇÕES (MODO VISITANTE 🔒) */}
+          {/* ETAPA 2.6: SALA DE OPERAÇÕES (MODO VISITANTE 🔒 COMPLETO) */}
           {etapa === 2.6 && (
             <section className="scout-content" style={{ padding: '20px' }}>
-              <div style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.3)', padding: '12px 16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
-                <span style={{ color: '#ffd700', fontSize: '11px', fontWeight: 'bold' }}>
-                  🔒 MODO VISITANTE · DEGUSTAÇÃO DO COCKPIT
+              <div style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.35)', padding: '14px 20px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
+                <span style={{ color: '#ffd700', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                  🔒 MODO VISITANTE · DEGUSTAÇÃO DO COCKPIT OPERACIONAL
                 </span>
                 <button
                   type="button"
                   onClick={() => setEtapa(3)}
-                  style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: '900', fontSize: '11px', cursor: 'pointer' }}
+                  style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '900', fontSize: '11px', cursor: 'pointer', boxShadow: '0 0 15px rgba(0,255,136,0.3)' }}
                 >
                   PREENCHER QUIZ & DESBLOQUEAR →
                 </button>
               </div>
 
-              <div style={{ opacity: 0.65, pointerEvents: 'none', background: '#0b0f0d', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '16px', padding: '24px' }}>
-                <h3 style={{ fontSize: '18px', color: '#fff', margin: '0 0 4px' }}>Sala de Operações SCOUT.CRC</h3>
-                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)', margin: '0 0 16px' }}>Ambiente operacional restrito a Gestores de Comunidade.</p>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px' }}>
-                  <div style={{ background: 'rgba(0,0,0,0.5)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <strong>Informativos 🔒</strong>
+              {/* Layout Real da Sala de Operações em Versão de Degustação */}
+              <div style={{ opacity: 0.75, pointerEvents: 'none', background: 'rgba(8, 10, 10, 0.72)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '20px', padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '14px' }}>
+                  <div>
+                    <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>AMBIENTE OPERACIONAL</span>
+                    <h2 style={{ fontSize: '22px', color: '#fff', margin: '4px 0 0' }}>Sala de Operações SCOUT.CRC</h2>
                   </div>
-                  <div style={{ background: 'rgba(0,0,0,0.5)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <strong>Mentoria 🔒</strong>
+                  <span style={{ fontSize: '10px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 'bold' }}>
+                    VISITANTE
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
+                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>◈ Informativos</div>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Informes, atualizações e notícias do mercado em tempo real. 🔒 Acesso Restrito</p>
                   </div>
-                  <div style={{ background: 'rgba(0,0,0,0.5)', padding: '14px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                    <strong>Curadoria 🔒</strong>
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
+                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>✦ Mentoria</div>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Gestão de comunidade, scripts X1 e treinamento de liderança. 🔒 Acesso Restrito</p>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
+                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>◇ Curadoria</div>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Ciência do produto, laudos e produtos ozonizados selecionados. 🔒 Acesso Restrito</p>
+                  </div>
+                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
+                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>✧ Seu SCOUT</div>
+                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Mapeamento de municípios IBGE e envio de Santinho Digital. 🔒 Acesso Restrito</p>
                   </div>
                 </div>
               </div>
-              <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '16px' }}>
+
+              <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '20px' }}>
                 ← Voltar
               </button>
             </section>
@@ -495,7 +676,7 @@ export default function LandingPage() {
 
       {/* ETAPA 9: TELA FINAL COM DESFOQUE (BLUR) E RETORNO BLOQUEADO */}
       {etapa === 9 && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'rgba(5,5,5,0.75)', backdropFilter: 'blur(16px)' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', background: 'rgba(5,5,5,0.8)', backdropFilter: 'blur(16px)' }}>
           <div style={{ width: 'min(480px, 100%)', padding: '32px', border: '1px solid rgba(0,255,136,0.4)', borderRadius: '24px', background: '#0b0f0d', boxShadow: '0 30px 100px rgba(0,255,136,0.25)', textAlign: 'center' }}>
             <div style={{ fontSize: '40px', marginBottom: '8px' }}>🔒</div>
             <span style={{ color: '#00ff88', fontSize: '10px', fontWeight: '900', letterSpacing: '2px', display: 'block', marginBottom: '6px' }}>
@@ -523,6 +704,7 @@ export default function LandingPage() {
         </div>
       )}
 
+      {/* ESTILOS CSS ORIGINAIS DO SIMULADOR E DA APLICAÇÃO */}
       <style jsx>{`
         .btn-destaque-neon {
           width: 100%;
@@ -566,6 +748,146 @@ export default function LandingPage() {
           color: #fff;
           background: rgba(255, 255, 255, 0.08);
           border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ESTILOS EXATOS DO CARD DO SIMULADOR DE NEGÓCIO ORIGINAL */
+        .card-simulador-original {
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          max-width: 880px;
+          margin: 0 auto;
+          background: rgba(18, 24, 38, 0.94);
+          backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,.08);
+          border-radius: 20px;
+          padding: 20px;
+          box-shadow: 0 12px 40px rgba(0,0,0,.35);
+          display: flex;
+          flex-direction: column;
+          min-height: 80vh;
+        }
+
+        .eyebrow-sim {
+          font-size: 11px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: rgba(0,255,136,.85);
+          margin-bottom: 2px;
+          font-weight: bold;
+        }
+
+        .title-sim {
+          font-size: clamp(16px,2vw,22px);
+          line-height: 1.2;
+          margin-bottom: 3px;
+          font-weight: 600;
+          color: #fff;
+        }
+
+        .subtitle-sim {
+          font-size: clamp(11px,1vw,13px);
+          line-height: 1.3;
+          color: rgba(255,255,255,.7);
+          margin-bottom: 12px;
+        }
+
+        .sim-grid-original {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+
+        .sim-label-original {
+          display: block;
+          font-size: 11px;
+          color: #aaa;
+          margin-bottom: 4px;
+          text-align: left;
+          line-height: 1.2;
+        }
+
+        .sim-select-original {
+          width: 100%;
+          background: #080808;
+          border: 1px solid #222;
+          border-radius: 10px;
+          padding: 9px 11px;
+          color: #00ff88;
+          font-weight: bold;
+          font-size: 12px;
+          outline: none;
+        }
+
+        .sim-body-wrapper-original {
+          display: flex;
+          gap: 16px;
+          align-items: stretch;
+          flex: 1;
+          min-height: 320px;
+          margin-bottom: 12px;
+        }
+
+        .info-col-left-original {
+          width: 32%;
+          min-width: 240px;
+          background: rgba(0, 255, 136, 0.06);
+          border: 1px dashed rgba(0, 255, 136, 0.4);
+          border-radius: 14px;
+          padding: 16px;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          box-shadow: inset 0 0 15px rgba(0, 255, 136, 0.03);
+        }
+
+        .chart-col-right-original {
+          flex: 1;
+          position: relative;
+          min-height: 280px;
+        }
+
+        .retorno-scout-original {
+          display: flex;
+          justify-content: center;
+          padding-top: 10px;
+          border-top: 1px solid rgba(255,255,255,0.06);
+          flex-shrink: 0;
+        }
+
+        .btn-avancar-simulador-oficial {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          width: 100%;
+          max-width: 520px;
+          min-height: 44px;
+          padding: 10px 20px;
+          border: 1px solid rgba(0,255,136,.35);
+          border-radius: 10px;
+          background: rgba(0,255,136,.12);
+          color: #00ff88;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          box-shadow: 0 0 20px rgba(0,255,136,0.2);
+          transition: all 0.2s ease;
+        }
+
+        .btn-avancar-simulador-oficial:hover {
+          background: #00ff88;
+          color: #050505;
+          box-shadow: 0 0 30px rgba(0,255,136,0.45);
+        }
+
+        @media(max-width: 720px) {
+          .card-simulador-original { padding: 14px; }
+          .sim-grid-original { grid-template-columns: 1fr; gap: 6px; }
+          .sim-body-wrapper-original { flex-direction: column; gap: 10px; }
+          .info-col-left-original { width: 100%; min-width: 100%; padding: 12px; }
+          .chart-col-right-original { min-height: 240px; }
         }
       `}</style>
     </main>
