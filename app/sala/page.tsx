@@ -68,6 +68,15 @@ export default function SalaPage() {
   const [gestorDesbloqueado, setGestorDesbloqueado] = useState(false);
   const [modoVisitante, setModoVisitante] = useState(false);
 
+// Detecta automaticamente se veio ?modo=visitante na URL
+useEffect(() => {
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('modo') === 'visitante') {
+      setModoVisitante(true);
+    }
+  }
+}, []);
   const [gestor, setGestor] = useState<{
     id: string;
     nome: string;
