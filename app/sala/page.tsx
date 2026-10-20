@@ -456,7 +456,7 @@ useEffect(() => {
 
               </div>
 
-              {/* CAPA PROTETORA COM O CADEADO E O BOTÃO DO QUIZ (Bloqueia 100% o acesso do visitante) */}
+              
               {modoVisitante && !gestorDesbloqueado && (
                 <div style={{
                   position: 'absolute',
