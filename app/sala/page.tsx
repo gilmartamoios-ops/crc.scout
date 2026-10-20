@@ -377,7 +377,7 @@ export default function SalaPage() {
                     <span className="sala-lock">{gestorDesbloqueado ? '✦' : '⌕'}</span>
                   </button>
 
-                  {gestorDesbloqueado && modulo.sublinks && moduloAtivo === modulo.nome && (
+                  {(gestorDesbloqueado || modoVisitante) && modulo.sublinks && moduloAtivo === modulo.nome && (
                     <div className="sala-sublinks">
                       {modulo.sublinks.map((sub) => (
                         <button
@@ -430,10 +430,10 @@ export default function SalaPage() {
               </div>
             </div>
 
-            <div className="sala-center-viewport">
+            <div className="sala-center-viewport" style={{ position: 'relative' }}>
               
               {/* SUBLINK 1: PROSPECTO DIGITAL */}
-              {gestorDesbloqueado && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
+              {(gestorDesbloqueado || modoVisitante) && moduloAtivo === 'Seu SCOUT' && subModuloAtivo === 'Prospecto Digital' && (
                 <div className="sala-dynamic-card">
                   {/* CABEÇALHO EXATO SOLICITADO */}
                   <h3 style={{ fontSize: '20px', margin: '0 0 4px', color: '#fff' }}>Prospecto Digital</h3>
