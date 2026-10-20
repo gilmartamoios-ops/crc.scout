@@ -14,8 +14,7 @@ export default function LandingPage() {
   // 1 = Santinho Digital
   // 2 = Mini-APN
   // 2.2 = Aviso de Rigor Técnico
-  // 2.4 = Simulador de Negócio Original (Gráfico Chart.js + DataLabels + Layout 2 Colunas)
-  // 2.6 = Sala de Operações (Modo Visitante 🔒 Completo)
+  // 2.4 = Simulador de Negócio Original (Chart.js + DataLabels)
   // 3 = Quiz de Qualificação
   // 8 = Formulário de Cadastro Direto
   // 9 = Sucesso / Tela Final Desfocada (Blur)
@@ -76,7 +75,7 @@ export default function LandingPage() {
     }
   }, []);
 
-  // Executa o motor da simulação oficial e renderiza o gráfico Chart.js + DataLabels
+  // Executa a simulação e renderiza o gráfico Chart.js + DataLabels
   useEffect(() => {
     if (etapa === 2.4) {
       simular();
@@ -277,8 +276,7 @@ export default function LandingPage() {
   const voltar = () => {
     if (etapa === 2.2) setEtapa(2);
     else if (etapa === 2.4) setEtapa(2.2);
-    else if (etapa === 2.6) setEtapa(2.4);
-    else if (etapa === 3) setEtapa(2.6);
+    else if (etapa === 3) setEtapa(2.4);
     else if (etapa === 8) setEtapa(3);
   };
 
@@ -453,7 +451,7 @@ export default function LandingPage() {
             </section>
           )}
 
-          {/* ETAPA 2.4: SIMULADOR DE NEGÓCIO ORIGINAL (ESTILO E MOTOR IDÊNTICOS AO CÓDIGO HTML/CSS ORIGINAL) */}
+          {/* ETAPA 2.4: SIMULADOR DE NEGÓCIO ORIGINAL (REDIRECIONA PARA /sala?modo=visitante) */}
           {etapa === 2.4 && (
             <section className="scout-content" style={{ padding: '12px' }}>
               <div className="card-simulador-original">
@@ -503,67 +501,13 @@ export default function LandingPage() {
                 <div className="retorno-scout-original">
                   <button
                     type="button"
-                    onClick={() => setEtapa(2.6)}
+                    onClick={() => { window.location.href = '/sala?modo=visitante'; }}
                     className="btn-avancar-simulador-oficial"
                   >
                     ⚡ VISITE A SALA DE OPERAÇÕES DO SEU FUTURO NEGÓCIO <span>→</span>
                   </button>
                 </div>
               </div>
-            </section>
-          )}
-
-          {/* ETAPA 2.6: SALA DE OPERAÇÕES (MODO VISITANTE 🔒 COMPLETO) */}
-          {etapa === 2.6 && (
-            <section className="scout-content" style={{ padding: '20px' }}>
-              <div style={{ background: 'rgba(255,215,0,0.1)', border: '1px solid rgba(255,215,0,0.35)', padding: '14px 20px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-                <span style={{ color: '#ffd700', fontSize: '11px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                  🔒 MODO VISITANTE · DEGUSTAÇÃO DO COCKPIT OPERACIONAL
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setEtapa(3)}
-                  style={{ background: '#00ff88', color: '#050505', border: 'none', padding: '10px 18px', borderRadius: '10px', fontWeight: '900', fontSize: '11px', cursor: 'pointer', boxShadow: '0 0 15px rgba(0,255,136,0.3)' }}
-                >
-                  PREENCHER QUIZ & DESBLOQUEAR →
-                </button>
-              </div>
-
-              {/* Layout Real da Sala de Operações em Versão de Degustação */}
-              <div style={{ opacity: 0.75, pointerEvents: 'none', background: 'rgba(8, 10, 10, 0.72)', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '20px', padding: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '14px' }}>
-                  <div>
-                    <span style={{ fontSize: '9px', color: 'rgba(255,255,255,0.4)', letterSpacing: '1.5px', textTransform: 'uppercase' }}>AMBIENTE OPERACIONAL</span>
-                    <h2 style={{ fontSize: '22px', color: '#fff', margin: '4px 0 0' }}>Sala de Operações SCOUT.CRC</h2>
-                  </div>
-                  <span style={{ fontSize: '10px', background: 'rgba(0,255,136,0.15)', color: '#00ff88', padding: '4px 12px', borderRadius: '20px', border: '1px solid rgba(0,255,136,0.3)', fontWeight: 'bold' }}>
-                    VISITANTE
-                  </span>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
-                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
-                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>◈ Informativos</div>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Informes, atualizações e notícias do mercado em tempo real. 🔒 Acesso Restrito</p>
-                  </div>
-                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
-                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>✦ Mentoria</div>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Gestão de comunidade, scripts X1 e treinamento de liderança. 🔒 Acesso Restrito</p>
-                  </div>
-                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
-                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>◇ Curadoria</div>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Ciência do produto, laudos e produtos ozonizados selecionados. 🔒 Acesso Restrito</p>
-                  </div>
-                  <div style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(0,255,136,0.2)', borderRadius: '14px', padding: '18px' }}>
-                    <div style={{ color: '#00ff88', fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>✧ Seu SCOUT</div>
-                    <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: '1.4' }}>Mapeamento de municípios IBGE e envio de Santinho Digital. 🔒 Acesso Restrito</p>
-                  </div>
-                </div>
-              </div>
-
-              <button type="button" className="btn-voltar-sutil" onClick={voltar} style={{ marginTop: '20px' }}>
-                ← Voltar
-              </button>
             </section>
           )}
 
@@ -612,7 +556,7 @@ export default function LandingPage() {
                     CONTINUAR PARA CONTATO ➔
                   </button>
 
-                  <button type="button" className="btn-voltar-sutil" onClick={voltar}>
+                  <button type="button" className="btn-voltar-sutil" onClick={() => setEtapa(2.4)}>
                     ← Voltar
                   </button>
                 </div>
@@ -704,7 +648,7 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* ESTILOS CSS ORIGINAIS DO SIMULADOR E DA APLICAÇÃO */}
+      {/* ESTILOS CSS ORIGINAIS */}
       <style jsx>{`
         .btn-destaque-neon {
           width: 100%;
@@ -750,7 +694,6 @@ export default function LandingPage() {
           border-color: rgba(255, 255, 255, 0.25);
         }
 
-        /* ESTILOS EXATOS DO CARD DO SIMULADOR DE NEGÓCIO ORIGINAL */
         .card-simulador-original {
           position: relative;
           z-index: 2;
